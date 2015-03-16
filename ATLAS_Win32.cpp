@@ -193,7 +193,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 	render_engine.SetFlag(ATLAS::ORTHOGRAPHIC_PROJECTION, false);
 	render_engine.SetProjection((real32)win32_window.game_window.back_buffer.width /
 								(real32)win32_window.game_window.back_buffer.height,
-								30.0f, 1.0f, 1000.0f);
+								30.0f, 1.0f, 10000.0f);
 
 	while (!g_Quit) {
 		MSG msg = {};
@@ -217,7 +217,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 
 namespace ATLAS
 {
-	Vector4f verts[] = 
+	Vector4f verts[]
 	{
 		Vector4f(-0.5f, -0.5f, 0.5f), //left  - top    - front
 		Vector4f(0.5f, -0.5f, 0.5f), //right - top    - front
@@ -229,7 +229,8 @@ namespace ATLAS
 		Vector4f(-0.5f, 0.5f, -0.5f) //right - bottum - back
 	};
 
-	Polygon polys[] {
+	Polygon polys[]
+	{
 		Polygon(0, 1, 4), //front
 		Polygon(4, 1, 5), //front
 		Polygon(1, 2, 5), //bottum
@@ -244,7 +245,13 @@ namespace ATLAS
 		Polygon(2, 1, 0) //left
 	};
 
-	UV uvs[] =
+	Color colors[]
+	{
+		RED, GREEN, BLUE, GREEN,
+		BLUE, GREEN, RED, GREEN
+	};
+
+	UV uvs[]
 	{
 		UV(0.0f, 0.0f),		// v0
 		UV(1.0f, 0.0f),		// v1
@@ -256,16 +263,11 @@ namespace ATLAS
 		UV(0.0f, 1.0f),		// v7
 	};
 
-	Texture tex("texture.bmp");
-	//Texture tex("Untitled.bmp");
+	Texture cubetexture("texture.bmp");
+	Texture spaceshiptexture("spaceshiptexture.bmp");
 
-	Color colors[]
-	{
-		RED, GREEN, BLUE, GREEN,
-		BLUE, GREEN, RED, GREEN
-	};
-
-	Model cube(verts, 8, polys, 12, uvs, &tex, colors);
+	Model spaceship("spaceship.3DS", &spaceshiptexture);
+	Model cube(verts, 8, polys, 12, uvs, &cubetexture, colors);
 
 	void RenderEngine::DrawScene()
 	{
@@ -282,7 +284,13 @@ namespace ATLAS
 		Matrix4f Ry = Rx * RotationMatrix(0.0f, r, 0.0f);
 		Matrix4f Rz = Ry * RotationMatrix(0.0f, 0.0f, r / 2.0f);
 		cube.m_TransformationMatrix = Rz * ScaleMatrix(1.0f, 1.0f, 1.0f);
-				
-		DrawModel(&cube, DRAW_TRIANGLES);// | DRAW_LINES);
+		DrawModel(&cube, DRAW_TRIANGLES);
+
+		T = TranslationMatrix(0.0f, 0.025f, -100.0f);
+		Rx = T * RotationMatrix(r * 2.0f, 0.0f, 0.0f);
+		Ry = Rx * RotationMatrix(0.0f, r, 0.0f);
+		Rz = Ry * RotationMatrix(0.0f, 0.0f, r / 2.0f);
+		spaceship.m_TransformationMatrix = Rz * ScaleMatrix(0.1f, 0.1f, 0.1f);
+		DrawModel(&spaceship, DRAW_TRIANGLES);
 	}
 }

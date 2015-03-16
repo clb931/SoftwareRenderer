@@ -120,7 +120,7 @@ namespace ATLAS
 	class Polygon
 	{
 	public:
-		Polygon(uint32 v1, uint32 v2, uint32 v3);
+		Polygon(uint32 v1 = 0, uint32 v2 = 0, uint32 v3 = 0);
 
 		uint32 v1;
 		uint32 v2;
@@ -129,6 +129,7 @@ namespace ATLAS
 	class Model
 	{
 	public:
+		Model(const char *file_path, Texture *texture = nullptr);
 		Model(Vertex *vertices, uint32 num_vertices,
 			  Polygon *polygons, uint32 num_polygons,
 			  UV *uvs = nullptr, Texture *texture = nullptr,
