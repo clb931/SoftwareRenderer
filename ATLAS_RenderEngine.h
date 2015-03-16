@@ -100,12 +100,13 @@ namespace ATLAS
 	class Span
 	{
 	public:
-		Span(real32 x1, const Color &color1, UV uv1,
-			real32 x2, const Color &color, UV uv2);
+		Span(real32 x1, const Color &color1, UV uv1, real32 z1,
+			real32 x2, const Color &color, UV uv2, real32 z2);
 
 		real32 m_Start, m_End;
 		Color m_Color1, m_Color2;
 		UV m_UV1, m_UV2;
+		real32 m_Z1, m_Z2;
 	};
 	class Edge
 	{
