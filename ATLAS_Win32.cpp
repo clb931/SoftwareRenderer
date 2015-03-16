@@ -274,25 +274,23 @@ namespace ATLAS
 		Clear(COLOR_BUFFER | DEPTH_BUFFER);
 		
 		PERSIST real32 x = 0.0f, y = 0.0f, z = 0.0f, r = 0.0f;
-		x -= 0.03f;
+		x -= 0.01f;
 		y -= 0.01f;
-		z -= 5;
+		z -= 0.01f;
 		r += 0.5f;
 
-		Matrix4f T = TranslationMatrix(0.0f, cosf(x) * 2.0f, -10.0f);
-		Matrix4f Rx = T * RotationMatrix(0.0f, 0.0f, 0.0f);
-		Matrix4f Ry = Rx * RotationMatrix(0.0f, 0.0f, 0.0f);
-		Matrix4f Rz = Ry * RotationMatrix(0.0f, 0.0f, 0.0f);
+		Matrix4f T = TranslationMatrix(0.0f, 0.025f, -10.0f);
+		Matrix4f Rx = T * RotationMatrix(r * 2.0f, 0.0f, 0.0f);
+		Matrix4f Ry = Rx * RotationMatrix(0.0f, r, 0.0f);
+		Matrix4f Rz = Ry * RotationMatrix(0.0f, 0.0f, r / 2.0f);
 		cube.m_TransformationMatrix = Rz * ScaleMatrix(1.0f, 1.0f, 1.0f);
 		DrawModel(&cube, DRAW_TRIANGLES);
-		OutputDebugStringA(ToString(cube.m_TransformationMatrix).c_str());
 
-		T = TranslationMatrix(/*sinf(x) * 10*/0.0f, 0.0f, -2000.0f + z);
-		Rx = T * RotationMatrix(-100.0f, 0.0f, 0.0f);
-		Ry = Rx * RotationMatrix(0.0f, 0.0f, 0.0f);
-		Rz = Ry * RotationMatrix(0.0f, 0.0f, 0.0f);
-		spaceship.m_TransformationMatrix = Rz * ScaleMatrix(1.0f, 1.0f, 1.0f);
+		T = TranslationMatrix(0.0f, 0.025f, -100.0f);
+		Rx = T * RotationMatrix(r * 2.0f, 0.0f, 0.0f);
+		Ry = Rx * RotationMatrix(0.0f, r, 0.0f);
+		Rz = Ry * RotationMatrix(0.0f, 0.0f, r / 2.0f);
+		spaceship.m_TransformationMatrix = Rz * ScaleMatrix(0.1f, 0.1f, 0.1f);
 		DrawModel(&spaceship, DRAW_TRIANGLES);
-		OutputDebugStringA(ToString(spaceship.m_TransformationMatrix).c_str());
 	}
 }

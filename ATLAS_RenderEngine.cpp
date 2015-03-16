@@ -4,7 +4,7 @@
 #include <Windows.h>
 
 real32 zNear = 0.0f;
-real32 zFar = 1.0f;
+real32 zFar = 0.0f;
 ATLAS::Matrix4f View = ATLAS::IdentityMatrix;
 
 namespace ATLAS
@@ -164,28 +164,24 @@ namespace ATLAS
 	}
 		
 	Span::Span(
-		real32 x1, const Color &color1, UV uv1, real32 z1,
-		real32 x2, const Color &color2, UV uv2, real32 z2)
+		real32 x1, const Color &color1, UV uv1,
+		real32 x2, const Color &color2, UV uv2)
 	{
 		if (x1 < x2) {
 			m_Color1 = color1;
 			m_Start = x1;
 			m_UV1 = uv1;
-			m_Z1 = z1;
 			m_Color2 = color2;
 			m_End = x2;
 			m_UV2 = uv2;
-			m_Z2 = z2;
 		}
 		else {
 			m_Color1 = color2;
 			m_Start = x2;
 			m_UV1 = uv2;
-			m_Z1 = z2;
 			m_Color2 = color1;
 			m_End = x1;
 			m_UV2 = uv1;
-			m_Z2 = z1;
 		}
 	}
 	Edge::Edge(
@@ -428,20 +424,17 @@ namespace ATLAS
 			v1 *= MV;
 			v2 *= MV;
 			v3 *= MV;
+
+			if (-v1.z < zNear || -v1.z > zFar || -v2.z < zNear || -v2.z > zFar || -v3.z < zNear || -v3.z > zFar)
+				return;
 				
 			v1 *= m_Projection;
 			v2 *= m_Projection;
 			v3 *= m_Projection;
-
-			v1.x /= v1.w;
-			v1.y /= v1.w;
-			v1.z /= v1.w;
-			v2.x /= v2.w;
-			v2.y /= v2.w;
-			v2.z /= v2.w;
-			v3.x /= v3.w;
-			v3.y /= v3.w;
-			v3.z /= v3.w;
+				
+			v1 /= v1.w;
+			v2 /= v2.w;
+			v3 /= v3.w;
 
 			v1.x = (halfwidth * v1.x) + (X + halfwidth);
 			v1.y = (halfheight * v1.y) + (Y + halfheight);
@@ -452,7 +445,6 @@ namespace ATLAS
 			v3.x = (halfwidth * v3.x) + (X + halfwidth);
 			v3.y = (halfheight * v3.y) + (Y + halfheight);
 			v3.z = (halfZ1 * v3.z) + halfZ2;
-
 
 			if (model->m_Colors)
 			{
@@ -543,19 +535,14 @@ namespace ATLAS
 		real32 udiff1 = long_edge.m_UV2.u - long_edge.m_UV1.u;
 		real32 udiff2 = short_edge.m_UV2.u - short_edge.m_UV1.u;
 
-		real32 zdiff1 = long_edge.m_End.z - long_edge.m_Start.z;
-		real32 zdiff2 = short_edge.m_End.z - short_edge.m_Start.z;
-
 		for (real32 y = short_edge.m_Start.y; y < short_edge.m_End.y; y += 1.0f) {
 			Span span(
 				long_edge.m_Start.x + (xdiff1 * factor1),
 				long_edge.m_Color1 + (cdiff1 * factor1),
 				UV(long_edge.m_UV1.u + (udiff1 * factor1), long_edge.m_UV1.v + (vdiff1 * factor1)),
-				long_edge.m_Start.z + (zdiff1 * factor1),
 				short_edge.m_Start.x + (xdiff2 * factor2),
 				short_edge.m_Color1 + (cdiff2 * factor2),
-				UV(short_edge.m_UV1.u + (udiff2 * factor2), short_edge.m_UV1.v + (vdiff2 * factor2)),
-				short_edge.m_Start.z + (zdiff2 * factor2)
+				UV(short_edge.m_UV1.u + (udiff2 * factor2), short_edge.m_UV1.v + (vdiff2 * factor2))
 			);
 
 			DrawSpan(span, y, tex);
@@ -579,8 +566,6 @@ namespace ATLAS
 		real32 udiff = span.m_UV2.u - span.m_UV1.u;
 		real32 vdiff = span.m_UV2.v - span.m_UV1.v;
 
-		real32 zdiff = span.m_Z2 - span.m_Z1;
-
 		for (real32 x = span.m_Start; x < span.m_End; x += 1.0f) {
 			if (texture) {
 				uint32 u = min((span.m_UV1.u + (udiff * factor)) * texture->width, 1440 - 1);
@@ -594,20 +579,7 @@ namespace ATLAS
 					texture->data[uv + 3] / 255.0f);
 			}
 
-			real32 z = span.m_Z1 + (zdiff * factor);
-			uint32 i = x + (y * m_DepthBuffer->width);
-			real32 *depth = (real32 *)m_DepthBuffer->pixels;
-
-			if (i > m_DepthBuffer->width * m_DepthBuffer->height - 1)
-				return;
-
-			if (z < depth[i]) {
-				depth[i] = z;
-
-				DrawPixel((uint32)x, (uint32)y, //Color(depth[i], depth[i], depth[i]));
-					texel * (span.m_Color1 + (cdiff * factor)));
-			}
-
+			DrawPixel((uint32)x, (uint32)y, texel * (span.m_Color1 + (cdiff * factor)));
 			factor += factorStep;
 		}
 	}
@@ -674,6 +646,8 @@ namespace ATLAS
 	}
 	void RenderEngine::Clear(uint8 flags)
 	{
+		int32 j = 0;
+		int32 m = 0;
 		if (flags & COLOR_BUFFER){
 			uint32 *pixel = (uint32 *)m_FrameBuffer->pixels;
 
@@ -685,7 +659,7 @@ namespace ATLAS
 			real32 *pixel = (real32 *)m_DepthBuffer->pixels;
 
 			for (uint32 i = 0; i < m_DepthBuffer->height * m_DepthBuffer->width; ++i)
-				pixel[i] = zFar;
+				pixel[i] = 1.0f;
 		}
 	}
 
@@ -718,6 +692,9 @@ namespace ATLAS
 	void RenderEngine::SetProjection(real32 aspect_ration, real32 FOV, real32 z_near, real32 z_far)
 	{
 		const real32 DEG2RAD = PI / 180.0f;
+
+		zNear = z_near;
+		zFar = z_far;
 
 		real32 tangent = tanf(FOV / 2 * DEG2RAD);
 		real32 height = z_near * tangent;
