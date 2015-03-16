@@ -11,10 +11,10 @@ namespace ATLAS
 {
 	Color::Color(real32 r, real32 g, real32 b, real32 a)
 	{
-		R = r;
-		G = g;
-		B = b;
-		A = a;
+		R = min(1.0f, r);
+		G = min(1.0f, g);
+		B = min(1.0f, b);
+		A = min(1.0f, a);
 	}
 	Color32 Color::toColor32() const
 	{
@@ -24,13 +24,25 @@ namespace ATLAS
 			((uint32)(G * 255.0f) << 8) |
 			((uint32)(B * 255.0f) << 0));
 	}
-	Color Color::operator+(const Color &c) const
+	Color Color::operator+(const Color &top) const
 	{
-		return Color(R + c.R, G + c.G, B + c.B, A + c.A);
+		return Color(R + top.R, G + top.G, B + top.B, A + top.A);
 	}
-	Color Color::operator-(const Color &c) const
+	Color Color::operator-(const Color &top) const
 	{
-		return Color(R - c.R, G - c.G, B - c.B, A - c.A);
+		return Color(R - top.R, G - top.G, B - top.B, A - top.A);
+	}
+	Color Color::operator*(const Color &top) const
+	{
+		return Color(R * top.R, G * top.G, B * top.B, A * top.A);
+	}
+	Color Color::operator/(const Color &top) const
+	{
+		if (top.R == 0.0f && top.G == 0.0f && top.B == 0.0f)
+			return Color();
+
+		Color c(R / top.R, G / top.G, B / top.B, A / top.A);
+		return c;
 	}
 	Color Color::operator*(real32 f) const
 	{
@@ -40,6 +52,62 @@ namespace ATLAS
 	{
 		return Color(R / f, G / f, B / f, A / f);
 	}
+	Color Color::operator~()
+	{
+		return Color(1.0f - R, 1.0f - G, 1.0f - B, 1.0f - A);
+	}
+
+	Color BlendAdd(Color bottom, Color top)
+	{
+		return bottom + top;
+	}
+	Color BlendSubtract(Color bottom, Color top)
+	{
+		return bottom - top;
+	}
+	Color BlendMultiply(Color bottom, Color top)
+	{
+		return bottom * top;
+	}
+	Color BlendScreen(Color bottom, Color top)
+	{
+		return ~(~bottom * ~top);
+	}
+	Color BlendOverlay(Color bottom, Color top)
+	{
+		Color c1 = (bottom * top) * 2.0f;
+		Color c2 = ~((~bottom * ~top) * 2.0f);
+		return Color(bottom.R < 0.5f ? c1.R : c2.R,
+			bottom.G < 0.5f ? c1.G : c2.G,
+			bottom.B < 0.5f ? c1.B : c2.B,
+			bottom.A < 0.5f ? c1.A : c2.A);
+	}
+	Color BlendDodge(Color bottom, Color top)
+	{
+		return bottom / ~top;
+	}
+	Color BlendBurn(Color bottom, Color top)
+	{
+		return ~((~bottom) / top);
+	}
+	Color BlendDifference(Color bottom, Color top)
+	{
+		Color c;
+		c.R = bottom.R < top.R ? top.R - bottom.R : bottom.R - top.R;
+		c.G = bottom.G < top.G ? top.G - bottom.G : bottom.G - top.G;
+		c.B = bottom.B < top.B ? top.B - bottom.B : bottom.B - top.B;
+		c.A = bottom.A < top.A ? top.A - bottom.A : bottom.A - top.A;
+		return c;
+	}
+	Color BlendDarken(Color bottom, Color top)
+	{
+		return Color(min(bottom.R, top.R), min(bottom.G, top.G), min(bottom.B, top.B), min(bottom.A, top.A));
+	}
+	Color BlendLighten(Color bottom, Color top)
+	{
+		return Color(max(bottom.R, top.R), max(bottom.G, top.G), max(bottom.B, top.B), max(bottom.A, top.A));
+	}
+
 	Texture::Texture(const char *file_path) : data(nullptr)
 	{
 		char str[256] = "";
@@ -95,8 +163,9 @@ namespace ATLAS
 			free(data);
 	}
 		
-	Span::Span(real32 x1, const Color &color1, real32 x2, const Color &color2,
-		UV uv1, UV uv2)
+	Span::Span(
+		real32 x1, const Color &color1, UV uv1,
+		real32 x2, const Color &color2, UV uv2)
 	{
 		if (x1 < x2) {
 			m_Color1 = color1;
@@ -115,8 +184,9 @@ namespace ATLAS
 			m_UV2 = uv1;
 		}
 	}
-	Edge::Edge(Vertex v1, const Color &color1, Vertex v2, const Color &color2,
-		UV uv1, UV uv2)
+	Edge::Edge(
+		Vertex v1, const Color &color1, UV uv1,
+		Vertex v2, const Color &color2,	UV uv2)
 	{
 		if (v1.y < v2.y) {
 			m_Color1 = color1;
@@ -217,6 +287,12 @@ namespace ATLAS
 		real32 halfZ1 = (zFar - zNear) / 2.0f;
 		real32 halfZ2 = (zFar + zNear) / 2.0f;
 		real32 X = 0.0f, Y = 0.0f;
+		Color c1;
+		Color c2;
+		Color c3;
+		UV uv1;
+		UV uv2;
+		UV uv3;
 
 		for (uint32 i = 0; i < model->m_NumPolygons; ++i) {
 			Vertex v1 = model->m_Vertices[model->m_Polygons[i].v1];
@@ -248,16 +324,24 @@ namespace ATLAS
 			v3.y = (halfheight * v3.y) + (Y + halfheight);
 			v3.z = (halfZ1 * v3.z) + halfZ2;
 
-			Color c1 = model->m_Colors[model->m_Polygons[i].v1];
-			Color c2 = model->m_Colors[model->m_Polygons[i].v2];
-			Color c3 = model->m_Colors[model->m_Polygons[i].v3];
+			if (model->m_Colors)
+			{
+				c1 = model->m_Colors[model->m_Polygons[i].v1];
+				c2 = model->m_Colors[model->m_Polygons[i].v2];
+				c3 = model->m_Colors[model->m_Polygons[i].v3];
+			}
 
-			UV uv1 = model->m_UVs[model->m_Polygons[i].v1];
-			UV uv2 = model->m_UVs[model->m_Polygons[i].v2];
-			UV uv3 = model->m_UVs[model->m_Polygons[i].v3];
+			if (model->m_Texture) {
+				uv1 = model->m_UVs[model->m_Polygons[i].v1];
+				uv2 = model->m_UVs[model->m_Polygons[i].v2];
+				uv3 = model->m_UVs[model->m_Polygons[i].v3];
+			}
 
 			if (style & DRAW_TRIANGLES) {
- 				DrawTriangle(v1, c1, v2, c2, v3, c3, uv1, uv2, uv3, model->m_Texture);
+				DrawTriangle(v1, c1, uv1, 
+							 v2, c2, uv2, 
+							 v3, c3, uv3,
+							 model->m_Texture);
 			}
 			if (style & DRAW_LINES) {
 				DrawLine(v1, c1, v2, c2);
@@ -271,21 +355,21 @@ namespace ATLAS
 			}
 		}
 	}
-	void RenderEngine::DrawTriangle(Vertex v1, const Color &color1, Vertex v2, const Color &color2, Vertex v3, const Color &color3,
-		UV uv1, UV uv2, UV uv3, Texture *texture)
+	void RenderEngine::DrawTriangle(
+		Vertex v1, const Color &color1, UV uv1,
+		Vertex v2, const Color &color2, UV uv2,
+		Vertex v3, const Color &color3, UV uv3,
+		Texture *texture)
 	{
-		if (m_Flags & CULL_FACES) {
-			if (Normalize(v1, v2, v3).z <= 0) {
-				//OutputDebugStringA("BACKFACE_CULL\n");
+		if (m_Flags & CULL_FACES)
+			if (Normalize(v1, v2, v3).z <= 0)
 				return;
-			}
-		}
 
 		Edge edges[3] =
 		{
-			Edge(v1, color1, v2, color2, uv1, uv2),
-			Edge(v2, color2, v3, color3, uv2, uv3),
-			Edge(v3, color3, v1, color1, uv3, uv1)
+			Edge(v1, color1, uv1, v2, color2, uv2),
+			Edge(v2, color2, uv2, v3, color3, uv3),
+			Edge(v3, color3, uv3, v1, color1, uv1)
 		};
 
 		real32 max_length = 0;
@@ -330,14 +414,14 @@ namespace ATLAS
 		real32 udiff2 = short_edge.m_UV2.u - short_edge.m_UV1.u;
 
 		for (real32 y = short_edge.m_Start.y; y < short_edge.m_End.y; y += 1.0f) {
-			UV uv1(long_edge.m_UV1.u + (udiff1 * factor1), long_edge.m_UV1.v + (vdiff1 * factor1));
-			UV uv2(short_edge.m_UV1.u + (udiff2 * factor2), short_edge.m_UV1.v + (vdiff2 * factor2));
-
-			Span span(long_edge.m_Start.x + (xdiff1 * factor1),
+			Span span(
+				long_edge.m_Start.x + (xdiff1 * factor1),
 				long_edge.m_Color1 + (cdiff1 * factor1),
+				UV(long_edge.m_UV1.u + (udiff1 * factor1), long_edge.m_UV1.v + (vdiff1 * factor1)),
 				short_edge.m_Start.x + (xdiff2 * factor2),
 				short_edge.m_Color1 + (cdiff2 * factor2),
-				uv1, uv2);
+				UV(short_edge.m_UV1.u + (udiff2 * factor2), short_edge.m_UV1.v + (vdiff2 * factor2))
+			);
 
 			DrawSpan(span, y, tex);
 
@@ -352,6 +436,7 @@ namespace ATLAS
 			return;
 
 		Color cdiff = span.m_Color2 - span.m_Color1;
+		Color texel;
 
 		real32 factor = 0.0f;
 		real32 factorStep = 1.0f / xdiff;
@@ -360,17 +445,19 @@ namespace ATLAS
 		real32 vdiff = span.m_UV2.v - span.m_UV1.v;
 
 		for (real32 x = span.m_Start; x < span.m_End; x += 1.0f) {
-			uint32 u = min((span.m_UV1.u + (udiff * factor)) * texture->width, 1440 - 1);
-			uint32 v = min((span.m_UV1.v + (vdiff * factor)) * texture->height, 900 - 1);
-			uint32 uv = (u + (v * texture->width)) * 4.0f;
+			if (texture) {
+				uint32 u = min((span.m_UV1.u + (udiff * factor)) * texture->width, 1440 - 1);
+				uint32 v = min((span.m_UV1.v + (vdiff * factor)) * texture->height, 900 - 1);
+				uint32 uv = (u + (v * texture->width)) * 4.0f;
 
-			Color c = Color(
-				texture->data[uv + 0] / 255.0f,
-				texture->data[uv + 1] / 255.0f,
-				texture->data[uv + 2] / 255.0f,
-				texture->data[uv + 3] / 255.0f);
+				texel = Color(
+					texture->data[uv + 0] / 255.0f,
+					texture->data[uv + 1] / 255.0f,
+					texture->data[uv + 2] / 255.0f,
+					texture->data[uv + 3] / 255.0f);
+			}
 
-			DrawPixel((uint32)x, (uint32)y, c);// +(span.m_Color1 + (cdiff * factor)));
+			DrawPixel((uint32)x, (uint32)y, texel * (span.m_Color1 + (cdiff * factor)));
 			factor += factorStep;
 		}
 	}

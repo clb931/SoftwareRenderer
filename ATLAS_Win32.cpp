@@ -193,7 +193,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 	render_engine.SetFlag(ATLAS::ORTHOGRAPHIC_PROJECTION, false);
 	render_engine.SetProjection((real32)win32_window.game_window.back_buffer.width /
 								(real32)win32_window.game_window.back_buffer.height,
-								30.0f, 5.0f, 1000.0f);
+								30.0f, 1.0f, 1000.0f);
 
 	while (!g_Quit) {
 		MSG msg = {};
@@ -217,17 +217,6 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 
 namespace ATLAS
 {
-	//Vertex verts[] =
-	//{
-	//	Vertex(-1.0f, -1.0f, 1.0f),	// L B F (-1, -1,  1)
-	//	Vertex(1.0f, -1.0f, 1.0f),	// R B F ( 1, -1,  1)
-	//	Vertex(-1.0f, 1.0f, 1.0f),	// L T F (-1,  1,  1)
-	//	Vertex(1.0f, 1.0f, 1.0f),	// R T F ( 1,  1,  1)
-	//	Vertex(-1.0f, -1.0f, -1.0f),// L B B (-1, -1, -1)
-	//	Vertex(1.0f, -1.0f, -1.0f),	// R B B ( 1, -1, -1)
-	//	Vertex(-1.0f, 1.0f, -1.0f),	// L T B (-1,  1, -1)
-	//	Vertex(1.0f, 1.0f, -1.0f)	// R T B ( 1,  1, -1)
-	//};
 	Vector4f verts[] = 
 	{
 		Vector4f(-0.5f, -0.5f, 0.5f), //left  - top    - front
@@ -240,21 +229,6 @@ namespace ATLAS
 		Vector4f(-0.5f, 0.5f, -0.5f) //right - bottum - back
 	};
 
-	//Polygon polys[] =
-	//{
-	//	Polygon(0, 1, 3),	// v0, v1, v3
-	//	Polygon(0, 3, 2),	// v0, v3, v2
-	//	Polygon(1, 5, 7),	// v1, v5, v7
-	//	Polygon(1, 7, 3),	// v1, v7, v3
-	//	Polygon(5, 4, 6),	// v5, v4, v6
-	//	Polygon(5, 6, 7),	// v5, v6, v7
-	//	Polygon(4, 0, 2),	// v4, v0, v2
-	//	Polygon(4, 2, 6),	// v4, v2, v6
-	//	Polygon(4, 5, 1),	// v4, v5, v1
-	//	Polygon(4, 1, 0),	// v4, v1, v0
-	//	Polygon(2, 3, 7),	// v2, v3, v7
-	//	Polygon(2, 7, 6)	// v2, v7, v6
-	//};
 	Polygon polys[] {
 		Polygon(0, 1, 4), //front
 		Polygon(4, 1, 5), //front
@@ -270,17 +244,6 @@ namespace ATLAS
 		Polygon(2, 1, 0) //left
 	};
 
-	//UV uvs[] =
-	//{
-	//	UV(0.0f, 0.0f),		// v0
-	//	UV(1.0f, 0.0f),		// v1
-	//	UV(0.0f, 1.0f),		// v2
-	//	UV(1.0f, 1.0f),		// v3
-	//	UV(0.0f, 0.0f),		// v4
-	//	UV(1.0f, 0.0f),		// v5
-	//	UV(0.0f, 1.0f),		// v6
-	//	UV(1.0f, 1.0f),		// v7
-	//};
 	UV uvs[] =
 	{
 		UV(0.0f, 0.0f),		// v0
@@ -294,11 +257,12 @@ namespace ATLAS
 	};
 
 	Texture tex("texture.bmp");
+	//Texture tex("Untitled.bmp");
 
 	Color colors[]
 	{
-		RED, GREEN, GREEN, BLUE,
-		BLUE, GREEN, GREEN, RED
+		RED, GREEN, BLUE, GREEN,
+		BLUE, GREEN, RED, GREEN
 	};
 
 	Model cube(verts, 8, polys, 12, uvs, &tex, colors);
@@ -313,14 +277,12 @@ namespace ATLAS
 		z -= 0.01f;
 		r += 0.5f;
 
-		Matrix4f T = TranslationMatrix(0.0f, 0.0f, -10.0f);
+		Matrix4f T = TranslationMatrix(0.0f, 0.025f, -10.0f);
 		Matrix4f Rx = T * RotationMatrix(r * 2.0f, 0.0f, 0.0f);
 		Matrix4f Ry = Rx * RotationMatrix(0.0f, r, 0.0f);
 		Matrix4f Rz = Ry * RotationMatrix(0.0f, 0.0f, r / 2.0f);
 		cube.m_TransformationMatrix = Rz * ScaleMatrix(1.0f, 1.0f, 1.0f);
-
-		//OutputDebugStringA(ToString(cube.m_TransformationMatrix).c_str());
-		
+				
 		DrawModel(&cube, DRAW_TRIANGLES);// | DRAW_LINES);
 	}
 }

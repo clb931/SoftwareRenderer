@@ -46,13 +46,16 @@ namespace ATLAS
 	class Color
 	{
 	public:
-		Color(real32 r = 1.0f, real32 g = 1.0f, real32 b = 1.0f, real32 a = 1.0f);
+		Color(real32 r = 1.0f, real32 g = 1.0f, real32 b = 1.0f, real32 a = 0.0f);
 
 		Color32 toColor32() const;
-		Color operator+(const Color &c) const;
-		Color operator-(const Color &c) const;
+		Color operator+(const Color &top) const;
+		Color operator-(const Color &top) const;
+		Color operator*(const Color &top) const;
+		Color operator/(const Color &top) const;
 		Color operator*(real32 f) const;
 		Color operator/(real32 f) const;
+		Color operator~();
 
 		real32 R, G, B, A;
 
@@ -65,6 +68,18 @@ namespace ATLAS
 #define YELLOW	ATLAS::Color(1.0f, 1.0f, 0.0f, 0.1f)
 #define WHITE	ATLAS::Color(1.0f, 1.0f, 1.0f, 0.1f)
 	};
+
+	Color BlendAdd(Color bottom, Color top);
+	Color BlendSubtract(Color bottom, Color top);
+	Color BlendMultiply(Color bottom, Color top);
+	Color BlendScreen(Color bottom, Color top);
+	Color BlendOverlay(Color bottom, Color top);
+	Color BlendDodge(Color bottom, Color top);
+	Color BlendBurn(Color bottom, Color top);
+	Color BlendDifference(Color bottom, Color top);
+	Color BlendDarken(Color bottom, Color top);
+	Color BlendLighten(Color bottom, Color top);
+
 	class Texture
 	{
 	public:
@@ -85,9 +100,8 @@ namespace ATLAS
 	class Span
 	{
 	public:
-		Span(real32 x1, const Color &color1,
-			real32 x2, const Color &color,
-			UV uv1, UV uv2);
+		Span(real32 x1, const Color &color1, UV uv1,
+			real32 x2, const Color &color, UV uv2);
 
 		real32 m_Start, m_End;
 		Color m_Color1, m_Color2;
@@ -96,9 +110,8 @@ namespace ATLAS
 	class Edge
 	{
 	public:
-		Edge(Vertex v1, const Color &color1,
-			Vertex v2, const Color &color2,
-			UV uv1, UV uv2);
+		Edge(Vertex v1, const Color &color1, UV uv1,
+			Vertex v2, const Color &color2,	UV uv2);
 
 		Color m_Color1, m_Color2;
 		Vertex m_Start, m_End;
@@ -141,15 +154,14 @@ namespace ATLAS
 
 		void DrawScene();
 		void DrawModel(Model *model, uint32);
-		void DrawTriangle(Vertex v1, const Color &color1,
-						  Vertex v2, const Color &color2,
-						  Vertex v3, const Color &color3,
-			UV uv1, UV uv2, UV uv3, Texture *tex);
+		void DrawTriangle(Vertex v1, const Color &color1, UV uv1,
+						  Vertex v2, const Color &color2, UV uv2,
+						  Vertex v3, const Color &color3, UV uv3,
+						  Texture *tex);
 		void DrawSpansBetweenEdges(const Edge &long_line,
 								   const Edge &shortLine,
-			Texture *tex);
-		void DrawSpan(const Span &span, real32 y,
-			Texture *texture);
+								   Texture *tex);
+		void DrawSpan(const Span &span, real32 y, Texture *texture);
 		void DrawLine(Vertex v1, const Color &color1,
 					  Vertex v2, const Color &color2);
 		void DrawPoint(Vertex v, const Color &color);
