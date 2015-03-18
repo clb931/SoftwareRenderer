@@ -1,5 +1,6 @@
 #ifndef ATLAS_MODEL_H
 #include "ATLAS_Texture.h"
+#include "ATLAS_Vertex.h"
 
 namespace ATLAS
 {
@@ -18,19 +19,16 @@ namespace ATLAS
 		Model(const char *file_path, Texture *texture = nullptr);
 		Model(Vertex *vertices, uint32 num_vertices,
 			Polygon *polygons, uint32 num_polygons,
-			UV *uvs = nullptr, Texture *texture = nullptr,
-			Color *colors = nullptr, Vector4f *normals = nullptr);
+			Texture *texture = nullptr, Vector4f *normals = nullptr);
 		~Model();
 
-		Matrix4f m_TransformationMatrix;
-		uint32	m_NumVertices;
-		Vertex	*m_Vertices;
-		uint32	m_NumPolygons;
-		Polygon *m_Polygons;
-		UV		*m_UVs;
-		Texture *m_Texture;
-		Color	*m_Colors;
-		Vertex	*m_Normals;
+		Matrix4f	m_TransformationMatrix;
+		uint32		m_NumVertices;
+		Vertex		*m_Vertices;
+		uint32		m_NumPolygons;
+		Polygon		*m_Polygons;
+		Texture		*m_Texture;
+		Vector4f	*m_Normals;
 	};
 }
 

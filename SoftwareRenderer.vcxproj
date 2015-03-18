@@ -85,6 +85,7 @@
     <ClCompile Include="ATLAS_Stdafx.cpp" />
     <ClCompile Include="ATLAS_Texture.cpp" />
     <ClCompile Include="ATLAS_Vector.cpp" />
+    <ClCompile Include="ATLAS_Vertex.cpp" />
     <ClCompile Include="ATLAS_Win32.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +96,7 @@
     <ClInclude Include="ATLAS_Texture.h" />
     <ClInclude Include="ATLAS_Vector.h" />
     <ClInclude Include="ATLAS_Model.h" />
+    <ClInclude Include="ATLAS_Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

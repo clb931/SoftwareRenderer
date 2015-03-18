@@ -16,9 +16,9 @@ void CalculateNormals(Model *model)
 	uint32 *edges = new uint32[model->m_NumVertices];
 
 	for (uint32 i = 0; i < model->m_NumPolygons; ++i) {
-		Vector4f N = Normalize(model->m_Vertices[model->m_Polygons[i].v1],
-			model->m_Vertices[model->m_Polygons[i].v2],
-			model->m_Vertices[model->m_Polygons[i].v3]);
+		Vector4f N = Normalize(model->m_Vertices[model->m_Polygons[i].v1].pos,
+			model->m_Vertices[model->m_Polygons[i].v2].pos,
+			model->m_Vertices[model->m_Polygons[i].v3].pos);
 
 		N = Normalize(N);
 
@@ -90,9 +90,11 @@ Model::Model(const char *file_path, Texture *texture)
 
 				m_Vertices = new Vertex[m_NumVertices];
 				for (uint32 i = 0; i < m_NumVertices; ++i) {
-					fread(&m_Vertices[i].x, sizeof(real32), 1, pFile);
-					fread(&m_Vertices[i].y, sizeof(real32), 1, pFile);
-					fread(&m_Vertices[i].z, sizeof(real32), 1, pFile);
+					fread(&m_Vertices[i].pos.x, sizeof(real32), 1, pFile);
+					fread(&m_Vertices[i].pos.y, sizeof(real32), 1, pFile);
+					fread(&m_Vertices[i].pos.z, sizeof(real32), 1, pFile);
+
+					m_Vertices[i].color = Color::WHITE;
 				}
 			} break;
 
@@ -119,10 +121,9 @@ Model::Model(const char *file_path, Texture *texture)
 				sprintf_s(str, 256, "\tUVs: %i\n", num);
 				OutputDebugStringA(str);
 
-				m_UVs = new UV[num];
 				for (uint32 i = 0; i < num; ++i) {
-					fread(&m_UVs[i].u, sizeof(real32), 1, pFile);
-					fread(&m_UVs[i].v, sizeof(real32), 1, pFile);
+					fread(&m_Vertices[i].uv.u, sizeof(real32), 1, pFile);
+					fread(&m_Vertices[i].uv.v, sizeof(real32), 1, pFile);
 				}
 			} break;
 
@@ -134,7 +135,6 @@ Model::Model(const char *file_path, Texture *texture)
 
 		m_TransformationMatrix = IdentityMatrix;
 		m_Texture = texture;
-		m_Colors = nullptr;
 		CalculateNormals(this);
 
 		OutputDebugStringA("Clossing File...\n\n");
@@ -147,22 +147,19 @@ Model::Model(const char *file_path, Texture *texture)
 }
 Model::Model(Vertex *vertices, uint32 num_vertices,
 	ATLAS::Polygon *polygons, uint32 num_polygons,
-	UV *uvs, Texture *texture,
-	Color *colors, Vertex *normals)
+	Texture *texture, Vector4f *normals)
 {
 	m_TransformationMatrix = IdentityMatrix;
 	m_NumVertices = num_vertices;
 	m_Vertices = new Vertex[num_vertices];
 	m_NumPolygons = num_polygons;
 	m_Polygons = new ATLAS::Polygon[num_polygons];
-	m_UVs = new UV[num_vertices];
 	m_Texture = texture;
-	m_Colors = colors;
+	m_Normals = new Vector4f[m_NumVertices];
 
 	for (uint32 i = 0; i < max(m_NumPolygons, m_NumVertices); ++i) {
 		if (i < m_NumVertices) {
 			m_Vertices[i] = vertices[i];
-			m_UVs[i] = uvs[i];
 
 			if (normals)
 				m_Normals[i] = normals[i];
@@ -178,6 +175,5 @@ Model::~Model()
 {
 	delete[] m_Vertices;
 	delete[] m_Polygons;
-	delete[] m_UVs;
 	delete[] m_Normals;
 }

@@ -1,5 +1,6 @@
 #ifndef ATLAS_RENDERCONTEXT_H
 #include "ATLAS_Texture.h"
+#include "ATLAS_Vertex.h"
 
 namespace ATLAS
 {
@@ -11,18 +12,25 @@ namespace ATLAS
 		AWS_FULLSCREEN = 4,
 		AWS_BORDERLESS = 8,
 
-		COLOR_BUFFER = 1,
+		FRAME_BUFFER = 1,
 		DEPTH_BUFFER = 2,
 
 		DRAW_POINTS = 1,
 		DRAW_LINES = 2,
 		DRAW_TRIANGLES = 4,
-
-		//Flags
-		ORTHOGRAPHIC_PROJECTION = 1,
-		CULL_FACES = 4
+	};
+	enum AtlasFlag
+	{
+		CULL_FACES = 1
 	};
 
+	class Edge
+	{
+	public:
+		Edge(Vertex v1, Vertex v2);
+
+		Vertex m_Start, m_End;
+	};
 	class Span
 	{
 	public:
@@ -34,16 +42,6 @@ namespace ATLAS
 		Color m_Color1, m_Color2;
 		UV m_UV1, m_UV2;
 	};
-	class Edge
-	{
-	public:
-		Edge(Vertex v1, const Color &color1, UV uv1,
-			Vertex v2, const Color &color2,	UV uv2);
-
-		Color m_Color1, m_Color2;
-		Vertex m_Start, m_End;
-		UV m_UV1, m_UV2;
-	};
 
 	class RenderContext
 	{
@@ -52,29 +50,28 @@ namespace ATLAS
 		~RenderContext();
 
 		void DrawScene();
-		void DrawTriangle(Vertex v1, const Color &color1, UV uv1,
-						  Vertex v2, const Color &color2, UV uv2,
-						  Vertex v3, const Color &color3, UV uv3,
-						  Texture *tex);
-		void DrawSpansBetweenEdges(const Edge &long_line,
-								   const Edge &shortLine,
-								   Texture *tex);
-		void DrawSpan(const Span &span, uint32 y, Texture *texture);
-		void DrawLine(Vertex v1, const Color &color1,
-					  Vertex v2, const Color &color2);
-		void DrawPoint(Vertex v, const Color &color);
+		void DrawTriangle(Vertex v1, Vertex v2, Vertex v3);
+		void DrawSpansBetweenEdges(const Edge &long_edge, const Edge &short_edge);
+		void DrawSpan(const Span &span, uint32 y);
+		void DrawLine(Vertex v1, Vertex v2);
+		void DrawPoint(Vertex v);
+		Color GetTexel(UV uv);
 		void DrawPixel(uint32 x, uint32 y, const Color &color);
 		void Clear(uint8 buffer_flags);
 
+		void SetCurrentTexture(Texture *texture);
 		void SetClearColor(const Color &color);
 		void SetPointSize(int32 size);
-		void SetFlag(AtlasEnum flag, bool32 value);
+		void SetFlag(AtlasFlag flag, bool32 value);
 
 	private:
 		void			*m_FrameBuffer;
 		uint32			m_Width;
 		uint32			m_Height;
 
+
+		Texture			*m_CurrentTexture;
+		Matrix4f		m_ScreenTransform;
 		Color32			m_ClearColor;
 		int32			m_PointSize;
 		uint32			m_Flags;

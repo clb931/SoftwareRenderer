@@ -15,7 +15,6 @@ namespace ATLAS
 		Vector4f &operator&=(const Matrix4f &rhs);
 		Vector4f &operator*=(const real32 &rhs);
 		Vector4f &operator/=(const real32 &rhs);
-		real32 operator^=(const Vector4f &rhs);
 
 		real32 operator~();
 
@@ -31,7 +30,6 @@ namespace ATLAS
 		real32 a[4];
 		struct { real32 x, y, z, w; };
 	};
-	typedef Vector4f Vertex;
 	
 	Vector4f operator+(Vector4f lhs, const Vector4f &rhs);
 	Vector4f operator-(Vector4f lhs, const Vector4f &rhs);

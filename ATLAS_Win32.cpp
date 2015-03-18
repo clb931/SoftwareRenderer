@@ -167,16 +167,16 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return result;
 }
 
-Vector4f verts[]
+Vertex verts[]
 {
-	Vector4f(-0.5f, -0.5f, 0.5f),	//left  - top    - front
-		Vector4f(0.5f, -0.5f, 0.5f),	//right - top    - front
-		Vector4f(0.5f, -0.5f, -0.5f),	//left  - bottom - front
-		Vector4f(-0.5f, -0.5f, -0.5f),	//right - bottom - front
-		Vector4f(-0.5f, 0.5f, 0.5f),	//left  - top    - back
-		Vector4f(0.5f, 0.5f, 0.5f),		//right - top    - back
-		Vector4f(0.5f, 0.5f, -0.5f),	//left  - bottom - back
-		Vector4f(-0.5f, 0.5f, -0.5f)	//right - bottom - back
+	Vertex(Vector4f(-0.5f, -0.5f, 0.5f), UV(0.0f, 0.0f), Color::RED),	// left  - top    - front
+	Vertex(Vector4f(0.5f, -0.5f, 0.5f), UV(1.0f, 0.0f), Color::GREEN),	// right - top    - front
+	Vertex(Vector4f(0.5f, -0.5f, -0.5f), UV(1.0f, 0.0f), Color::BLUE),	// left  - bottom - front
+	Vertex(Vector4f(-0.5f, -0.5f, -0.5f), UV(0.0f, 0.0f), Color::GREEN),// right - bottom - front
+	Vertex(Vector4f(-0.5f, 0.5f, 0.5f), UV(0.0f, 1.0f), Color::BLUE),	// left  - top    - back
+	Vertex(Vector4f(0.5f, 0.5f, 0.5f), UV(1.0f, 1.0f), Color::GREEN),	// right - top    - back
+	Vertex(Vector4f(0.5f, 0.5f, -0.5f), UV(1.0f, 1.0f), Color::RED), 	// left  - bottom - back
+	Vertex(Vector4f(-0.5f, 0.5f, -0.5f), UV(0.0f, 1.0f), Color::GREEN)	// right - bottom - back
 };
 ATLAS::Polygon polys[]
 {
@@ -193,27 +193,26 @@ ATLAS::Polygon polys[]
 	ATLAS::Polygon(3, 2, 0),	//left
 	ATLAS::Polygon(2, 1, 0)	//left
 };
-Color colors[]
-{
-	Color::RED, Color::GREEN, Color::BLUE, Color::GREEN,
-		Color::BLUE, Color::GREEN, Color::RED, Color::GREEN
-};
-UV uvs[]
-{
-	UV(0.0f, 0.0f),		// v0
-		UV(1.0f, 0.0f),		// v1
-		UV(1.0f, 0.0f),		// v2
-		UV(0.0f, 0.0f),		// v3
-		UV(0.0f, 1.0f),		// v4
-		UV(1.0f, 1.0f),		// v5
-		UV(1.0f, 1.0f),		// v6
-		UV(0.0f, 1.0f),		// v7
-};
 
 Texture cubetexture("texture.bmp");
 Texture spaceshiptexture("spaceshiptexture.bmp");
 Model spaceship("spaceship.3DS", &spaceshiptexture);
-Model cube(verts, 8, polys, 12, uvs, &cubetexture, colors);
+Model cube(verts, 8, polys, 12, &cubetexture);
+void DrawModel(RenderContext *render_context, Model *model)
+{
+	for (uint32 p = 0; p < model->m_NumPolygons; ++p) {
+		Vertex v1 = model->m_Vertices[model->m_Polygons[p].v1];
+		Vertex v2 = model->m_Vertices[model->m_Polygons[p].v2];
+		Vertex v3 = model->m_Vertices[model->m_Polygons[p].v3];
+
+		v1.pos *= model->m_TransformationMatrix;
+		v2.pos *= model->m_TransformationMatrix;
+		v3.pos *= model->m_TransformationMatrix;
+
+		render_context->SetCurrentTexture(model->m_Texture);
+		render_context->DrawTriangle(v1, v2, v3);
+	}
+}
 
 int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nCmdShow)
 {
@@ -232,19 +231,6 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		(real32)win32_window.fb_width / (real32)win32_window.fb_height,
 		70.0f, 0.1f, 1000.0f);
 
-	//Vertex v1(
-	//	Vector4f(-1, -1, 0),
-	//	UV(0.0f, 0.0f),
-	//	Color::GREEN);
-	//Vertex v2(
-	//	Vector4f(0, 1, 0),
-	//	UV(0.5f, 1.0f),
-	//	Color::RED);
-	//Vertex v3(
-	//	Vector4f(1, -1, 0),
-	//	UV(1.0f, 0.0f),
-	//	Color::BLUE);
-
 	LARGE_INTEGER current_time, last_time, frequency;
 	QueryPerformanceFrequency(&frequency);
 	int64 counter_frequency = frequency.QuadPart;
@@ -259,25 +245,14 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		PERSIST real32 rotY = 0.0f;
 		rotY += (real32)delta_time / 10.0f;
 
-		Matrix4f t = TranslationMatrix(0.0f, 0.0f, 300.0f);
+		Matrix4f t = TranslationMatrix(0.0f, 0.0f, 1.5f);
 		Matrix4f r = RotationMatrix(0.0f, rotY, 0.0f);
 		Matrix4f MV = t * r;
 		Matrix4f MVP = P * MV;
-		
-		rc.Clear(COLOR_BUFFER | DEPTH_BUFFER);
-		for (uint32 p = 0; p < spaceship.m_NumPolygons; ++p) {
-			rc.DrawTriangle(
-				MVP * spaceship.m_Vertices[spaceship.m_Polygons[p].v1],
-				Color::WHITE,
-				spaceship.m_UVs[spaceship.m_Polygons[p].v1],
-				MVP * spaceship.m_Vertices[spaceship.m_Polygons[p].v2],
-				Color::WHITE,
-				spaceship.m_UVs[spaceship.m_Polygons[p].v2],
-				MVP * spaceship.m_Vertices[spaceship.m_Polygons[p].v3],
-				Color::WHITE,
-				spaceship.m_UVs[spaceship.m_Polygons[p].v3],
-				spaceship.m_Texture);
-		}
+		cube.m_TransformationMatrix = MVP;
+				
+		rc.Clear(FRAME_BUFFER | DEPTH_BUFFER);
+			DrawModel(&rc, &cube);
 		Win32::SwapBuffers(&win32_window);
 	}
 

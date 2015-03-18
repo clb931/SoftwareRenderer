@@ -36,6 +36,9 @@
     <ClInclude Include="ATLAS_Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ATLAS_Vertex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ATLAS_Vector.cpp">
@@ -60,6 +63,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ATLAS_Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ATLAS_Vertex.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

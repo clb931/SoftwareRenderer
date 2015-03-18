@@ -33,6 +33,7 @@ namespace ATLAS
 
 	Color operator+(Color bottom, const Color &top);
 
+	Color BlendNormal(Color bottom, Color top);
 	Color BlendAdd(Color bottom, Color top);
 	Color BlendSubtract(Color bottom, Color top);
 	Color BlendMultiply(Color bottom, Color top);

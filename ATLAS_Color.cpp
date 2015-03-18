@@ -59,6 +59,10 @@ namespace ATLAS
 		return bottom += top;
 	}
 
+	Color BlendNormal(Color bottom, Color top)
+	{
+		return top;
+	}
 	Color BlendAdd(Color bottom, Color top)
 	{
 		return bottom + top;

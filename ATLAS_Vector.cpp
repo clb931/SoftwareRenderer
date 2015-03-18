@@ -67,10 +67,6 @@ namespace ATLAS
 
 		return *this;
 	}
-	real32 Vector4f::operator^=(const Vector4f &rhs)
-	{
-		return (x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w);
-	}
 
 	real32 Vector4f::operator~()
 	{
@@ -120,7 +116,7 @@ namespace ATLAS
 	}
 	real32 operator^(Vector4f lhs, const Vector4f &rhs)
 	{
-		return lhs ^= rhs;
+		return (lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z + lhs.w * rhs.w);
 	}
 
 	inline bool operator==(const Vector4f &lhs, const Vector4f &rhs)
