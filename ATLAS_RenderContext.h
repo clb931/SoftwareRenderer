@@ -36,11 +36,16 @@ namespace ATLAS
 	public:
 		Span(real32 x1, const Color &color1, UV uv1,
 			real32 x2, const Color &color, UV uv2);
+		void operator++();
 
-		real32 m_Start, m_End;
-		real32 m_Depth1, m_Depth2;
-		Color m_Color1, m_Color2;
-		UV m_UV1, m_UV2;
+		uint32 x_min;
+		uint32 x_max;
+		real32 x_diff;
+		real32 x_step;
+		Color color;
+		Color color_step;
+		UV uv;
+		UV uv_step;
 	};
 
 	class RenderContext
@@ -52,7 +57,7 @@ namespace ATLAS
 		void DrawScene();
 		void DrawTriangle(Vertex v1, Vertex v2, Vertex v3);
 		void DrawSpansBetweenEdges(const Edge &long_edge, const Edge &short_edge);
-		void DrawSpan(const Span &span, uint32 y);
+		void DrawSpan(Span span, uint32 y);
 		void DrawLine(Vertex v1, Vertex v2);
 		void DrawPoint(Vertex v);
 		Color GetTexel(UV uv);

@@ -52,10 +52,22 @@ namespace ATLAS
 	{
 		Vector2f(real32 u = 0.0f, real32 v = 0.0f);
 
+		Vector2f &operator+=(const Vector2f &rhs);
+		Vector2f &operator-=(const Vector2f &rhs);
+		Vector2f &operator/=(const real32 &rhs);
+
+		friend Vector2f operator+(Vector2f lhs, const Vector2f &rhs);
+		friend Vector2f operator-(Vector2f lhs, const Vector2f &rhs);
+		friend Vector2f operator/(Vector2f lhs, const real32 &rhs);
+
 		real32 a[2];
 		struct { real32 u, v; };
 	};
 	typedef Vector2f UV;
+
+	Vector2f operator+(Vector2f lhs, const Vector2f &rhs);
+	Vector2f operator-(Vector2f lhs, const Vector2f &rhs);
+	Vector4f operator/(Vector4f lhs, const real32 &rhs);
 }
 
 #define ATLAS_VECTOR_H_

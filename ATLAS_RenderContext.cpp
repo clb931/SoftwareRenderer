@@ -103,33 +103,18 @@ namespace ATLAS
 			factor2 += factorStep2;
 		}
 	}
-	void RenderContext::DrawSpan(const Span &span, uint32 y)
+	void RenderContext::DrawSpan(Span span, uint32 y)
 	{
-		real32 xdiff = span.m_End - span.m_Start;
-		if (xdiff == 0)
+		if (span.x_diff == 0.0f)
 			return;
 
-		real32 factor = 0.0f;
-		real32 factorStep = 1.0f / xdiff;
-
-		Color color;
-		Color cdiff = span.m_Color2 - span.m_Color1;
-
-		UV uv;
 		Color texel;
-		real32 udiff = span.m_UV2.u - span.m_UV1.u;
-		real32 vdiff = span.m_UV2.v - span.m_UV1.v;
 
-		uint32 x_min = (uint32)ceil(span.m_Start);
-		uint32 x_max = (uint32)ceil(span.m_End);
-		for (uint32 x = x_min; x < x_max; ++x) {
-			color = (span.m_Color1 + (cdiff * factor));
-			uv.u = span.m_UV1.u + (udiff * factor);
-			uv.v = span.m_UV1.v + (vdiff * factor);
-			texel = GetTexel(uv);
+		for (uint32 x = span.x_min; x < span.x_max; ++x) {
+			texel = GetTexel(span.uv);
 
-			DrawPixel((uint32)x, (uint32)y, BlendNormal(color, texel));
-			factor += factorStep;
+			DrawPixel((uint32)x, (uint32)y, BlendNormal(span.color, texel));
+			++span;
 		}
 	}
 	
@@ -201,6 +186,11 @@ namespace ATLAS
 		uint32 y = (uint32)ceil(uv.v *( m_CurrentTexture->height - 1));
 		uint32 i = (uint32)ceil((x + y * m_CurrentTexture->width) * 4.0f);
 		
+		if (i > m_CurrentTexture->width * m_CurrentTexture->height * 4.0f) {
+			__debugbreak(); // need to fix this
+			return Color::WHITE;
+		}
+		
 		return Color(
 			m_CurrentTexture->data[i + 0] / 255.0f,
 			m_CurrentTexture->data[i + 1] / 255.0f,
@@ -209,8 +199,10 @@ namespace ATLAS
 		
 	}
 	void RenderContext::DrawPixel(uint32 x, uint32 y, const Color &color) {
-		if (x >= m_Width || y >= m_Height)
+		if (x >= m_Width || y >= m_Height) {
+			__debugbreak();
 			return;
+		}
 
 		uint32 *pixel = (uint32 *)m_FrameBuffer;
 		pixel[x + (y * m_Width)] = color.toColor32();
@@ -262,20 +254,29 @@ namespace ATLAS
 		real32 x2, const Color &color2, UV uv2)
 	{
 		if (x1 < x2) {
-			m_Color1 = color1;
-			m_Start = x1;
-			m_UV1 = uv1;
-			m_Color2 = color2;
-			m_End = x2;
-			m_UV2 = uv2;
+			x_min = (uint32)ceil(x1);
+			x_max = (uint32)ceil(x2);
+			x_diff = x2 - x1;
+			x_step = 1.0f / x_diff;
+			color = color1;
+			color_step = (color2 - color1) / x_diff;
+			uv = uv1;
+			uv_step = (uv2 - uv1) / x_diff;
 		}
 		else {
-			m_Color1 = color2;
-			m_Start = x2;
-			m_UV1 = uv2;
-			m_Color2 = color1;
-			m_End = x1;
-			m_UV2 = uv1;
+			x_min = (uint32)ceil(x2);
+			x_max = (uint32)ceil(x1);
+			x_diff = x1 - x2;
+			x_step = 1.0f / x_diff;
+			color = color2;
+			color_step = (color1 - color2) / x_diff;
+			uv = uv2;
+			uv_step = (uv1 - uv2) / x_diff;
 		}
+	}
+	void Span::operator++()
+	{
+		color += color_step;
+		uv += uv_step;
 	}
 }
