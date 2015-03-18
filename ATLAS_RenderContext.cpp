@@ -37,28 +37,34 @@ namespace ATLAS
 			if (Normalize(v1.pos, v2.pos, v3.pos).z >= 0)
 				return;
 
-		Edge edges[3] =
-		{
-			Edge(v1, v2),
-			Edge(v2, v3),
-			Edge(v3, v1)
-		};
+		Vertex bottom = v1;
+		Vertex middle = v2;
+		Vertex top = v3;
+		Vertex temp;
 
-		real32 max_length = 0;
-		int32 long_edge = 0;
-		for (int32 i = 0; i < 3; ++i) {
-			real32 length = edges[i].m_End.pos.y - edges[i].m_Start.pos.y;
-			if (length > max_length) {
-				max_length = length;
-				long_edge = i;
-			}
+		if (top.pos.y < middle.pos.y) {
+			temp = top;
+			top = middle;
+			middle = temp;
+		}
+		if (middle.pos.y < bottom.pos.y) {
+			temp = middle;
+			middle = bottom;
+			bottom = temp;
+		}
+		if (top.pos.y < middle.pos.y) {
+			temp = top;
+			top = middle;
+			middle = temp;
 		}
 
-		int32 short_edge1 = (long_edge + 1) % 3;
-		int32 short_edge2 = (long_edge + 2) % 3;
+		m_Gradients = Gradients(bottom, middle, top);
+		Edge bot2top(bottom, top, m_Gradients);
+		Edge bot2mid(bottom, middle, m_Gradients);
+		Edge mid2top(middle, top, m_Gradients);
 
-		DrawSpansBetweenEdges(edges[long_edge], edges[short_edge1]);
-		DrawSpansBetweenEdges(edges[long_edge], edges[short_edge2]);
+		DrawSpansBetweenEdges(bot2top, bot2mid);
+		DrawSpansBetweenEdges(bot2top, mid2top);
 	}
 	void RenderContext::DrawSpansBetweenEdges(Edge &long_edge, Edge &short_edge)
 	{
@@ -70,34 +76,36 @@ namespace ATLAS
 		real32 factor2 = 0.0f;
 		real32 factorStep2 = 1.0f / short_edge.y_diff;
 
+		Vertex v1;
+		Vertex v2;
+
 		uint32 y_min = (uint32)ceil(short_edge.m_Start.pos.y);
 		uint32 y_max = (uint32)ceil(short_edge.m_End.pos.y);
 		for (uint32 y = y_min; y < y_max; ++y) {
-			Span span(
-				long_edge.m_Start.pos.x + (long_edge.x_diff * factor1),
-				long_edge.m_Start.color + (long_edge.color_diff * factor1),
-				long_edge.m_Start.uv + (long_edge.uv_diff * factor1),
-				short_edge.m_Start.pos.x + (short_edge.x_diff * factor2),
-				short_edge.m_Start.color + (short_edge.color_diff * factor2),
-				short_edge.m_Start.uv + (short_edge.uv_diff * factor2));
-
-			DrawSpan(span, y);
+			v1.pos.x = long_edge.m_Start.pos.x + (long_edge.x_diff * factor1);
+			v1.uv = long_edge.m_Start.uv + (long_edge.uv_diff * factor1);
+			v1.color = long_edge.m_Start.color + (long_edge.color_diff * factor1);
+			v2.pos.x = short_edge.m_Start.pos.x + (short_edge.x_diff * factor2);
+			v2.uv = short_edge.m_Start.uv + (short_edge.uv_diff * factor2);
+			v2.color = short_edge.m_Start.color + (short_edge.color_diff * factor2);
+			
+			DrawSpan(Span(v1, v2, m_Gradients), y);
 
 			factor1 += factorStep1;
 			factor2 += factorStep2;
-		}
+		}   
 	}
 	void RenderContext::DrawSpan(Span &span, uint32 y)
 	{
 		if (span.x_diff == 0.0f)
 			return;
-
-		Color texel;
+		
+		Color texel = Color::BLACK;
 
 		for (uint32 x = span.x_min; x < span.x_max; ++x) {
-			texel = GetTexel(span.uv);
+			//texel = GetTexel(span.uv);
 
-			DrawPixel((uint32)x, (uint32)y, BlendNormal(span.color, texel));
+			DrawPixel((uint32)x, (uint32)y, BlendAdd(span.color, texel));
 			++span;
 		}
 	}
@@ -166,11 +174,12 @@ namespace ATLAS
 		if (!m_CurrentTexture)
 			return Color::WHITE;
 
-		uint32 x = (uint32)ceil(uv.u * (m_CurrentTexture->width - 1));
-		uint32 y = (uint32)ceil(uv.v *( m_CurrentTexture->height - 1));
-		uint32 i = (uint32)ceil((x + y * m_CurrentTexture->width) * 4.0f);
+		uint32 x = (uint32)(uv.u * (m_CurrentTexture->width - 1) + 0.5f);
+		uint32 y = (uint32)(uv.v * (m_CurrentTexture->height - 1) + 0.5f);
+		uint32 i = (x + y * m_CurrentTexture->width) * 4;
 		
 		if (i > m_CurrentTexture->width * m_CurrentTexture->height * 4.0f) {
+			OutputDebugStringA("Texture coord out of range\n");
 			__debugbreak(); // need to fix this
 			return Color::WHITE;
 		}
@@ -222,51 +231,63 @@ namespace ATLAS
 			m_Flags &= ~flag;
 	}
 	
-	Edge::Edge(Vertex v1, Vertex v2)
+
+	Gradients::Gradients(Vertex bot, Vertex mid, Vertex top)
 	{
-		if (v1.pos.y < v2.pos.y) {
-			m_Start = v1;
-			m_End = v2;
-			y_min = (uint32)ceil(v1.pos.y);
-			y_max = (uint32)ceil(v2.pos.y);
-			y_diff = v2.pos.y - v1.pos.y;
-			x_diff = (v2.pos.x - v1.pos.x);
-			color_diff = (v2.color - v1.color);
-			uv_diff = (v2.uv - v1.uv);
-		}
-		else {
-			m_Start = v2;
-			m_End = v1;
-			y_min = (uint32)ceil(v1.pos.y);
-			y_max = (uint32)ceil(v2.pos.y);
-			y_diff = v1.pos.y - v2.pos.y;
-			x_diff = v1.pos.x - v2.pos.x;
-			color_diff = v1.color - v2.color;
-			uv_diff = v1.uv - v2.uv;
-		}
+		real32 one_over_dx = 1.0f /
+			(((mid.pos.x - top.pos.x) * (bot.pos.y - top.pos.y)) -
+			((bot.pos.x - top.pos.x) * (mid.pos.y - top.pos.y)));
+		real32 one_over_dy = -one_over_dx;
+
+		Color colors[3] = { bot.color, mid.color, top.color };
+		color_x_step = CalculateXStep<Color>(colors, bot, mid, top, one_over_dx);
+		color_y_step = CalculateYStep<Color>(colors, bot, mid, top, one_over_dy);
 	}
-	Span::Span(real32 x1, const Color &color1, UV uv1,
-		real32 x2, const Color &color2, UV uv2)
+	template<typename T>
+	T Gradients::CalculateXStep(T t[], Vertex bot, Vertex mid, Vertex top, real32 one_over_dx)
 	{
-		if (x1 < x2) {
-			x_min = (uint32)ceil(x1);
-			x_max = (uint32)ceil(x2);
-			x_diff = x2 - x1;
+		return (((t[1] - t[2]) * (bot.pos.y - top.pos.y)) *
+			((t[0] - t[2]) * (mid.pos.y - top.pos.y))) * one_over_dx;
+	}
+	template<typename T>
+	T Gradients::CalculateYStep(T t[], Vertex bot, Vertex mid, Vertex top, real32 one_over_dx)
+	{
+		return (((t[1] - t[2]) * (bot.pos.x - top.pos.x)) *
+			((t[0] - t[2]) * (mid.pos.x - top.pos.x))) * one_over_dx;
+	}
+
+	Edge::Edge(Vertex bot, Vertex top, Gradients gradients)
+	{
+		m_Start = bot;
+		m_End = top;
+		y_min = (uint32)ceil(bot.pos.y);
+		y_max = (uint32)ceil(top.pos.y);
+		y_diff = top.pos.y - bot.pos.y;
+		x_diff = (top.pos.x - bot.pos.x);
+		color_diff = (top.color - bot.color);
+		uv_diff = (top.uv - bot.uv);
+	}
+	Span::Span(Vertex v1, Vertex v2, Gradients gradients)
+	{
+		if (v1.pos.x < v2.pos.x) {
+			x_min = (uint32)ceil(v1.pos.x);
+			x_max = (uint32)ceil(v2.pos.x);
+			x_diff = v2.pos.x - v1.pos.x;
 			x_step = 1.0f / x_diff;
-			color = color1;
-			color_step = (color2 - color1) / x_diff;
-			uv = uv1;
-			uv_step = (uv2 - uv1) / x_diff;
+			color = v1.color;
+			color_step = gradients.color_x_step + gradients.color_y_step;// (v2.color - v1.color) / x_diff;
+			uv = v1.uv;
+			uv_step = (v2.uv - v1.uv) / x_diff;
 		}
 		else {
-			x_min = (uint32)ceil(x2);
-			x_max = (uint32)ceil(x1);
-			x_diff = x1 - x2;
+			x_min = (uint32)ceil(v2.pos.x);
+			x_max = (uint32)ceil(v1.pos.x);
+			x_diff = v1.pos.x - v2.pos.x;
 			x_step = 1.0f / x_diff;
-			color = color2;
-			color_step = (color1 - color2) / x_diff;
-			uv = uv2;
-			uv_step = (uv1 - uv2) / x_diff;
+			color = v2.color;
+			color_step = gradients.color_x_step + gradients.color_y_step;// (v1.color - v2.color) / x_diff;
+			uv = v2.uv;
+			uv_step = (v1.uv - v2.uv) / x_diff;
 		}
 	}
 	void Span::operator++()
