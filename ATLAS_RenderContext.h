@@ -24,16 +24,22 @@ namespace ATLAS
 		CULL_FACES = 1
 	};
 
-	class Edge
+	struct Edge
 	{
-	public:
 		Edge(Vertex v1, Vertex v2);
 
 		Vertex m_Start, m_End;
+
+		uint32 y_min;
+		uint32 y_max;
+
+		real32 y_diff;
+		real32 x_diff;
+		Color color_diff;
+		UV uv_diff;
 	};
-	class Span
+	struct Span
 	{
-	public:
 		Span(real32 x1, const Color &color1, UV uv1,
 			real32 x2, const Color &color, UV uv2);
 		void operator++();
@@ -42,8 +48,10 @@ namespace ATLAS
 		uint32 x_max;
 		real32 x_diff;
 		real32 x_step;
+
 		Color color;
 		Color color_step;
+
 		UV uv;
 		UV uv_step;
 	};
@@ -56,8 +64,8 @@ namespace ATLAS
 
 		void DrawScene();
 		void DrawTriangle(Vertex v1, Vertex v2, Vertex v3);
-		void DrawSpansBetweenEdges(const Edge &long_edge, const Edge &short_edge);
-		void DrawSpan(Span span, uint32 y);
+		void DrawSpansBetweenEdges(Edge &long_edge, Edge &short_edge);
+		void DrawSpan(Span &span, uint32 y);
 		void DrawLine(Vertex v1, Vertex v2);
 		void DrawPoint(Vertex v);
 		Color GetTexel(UV uv);

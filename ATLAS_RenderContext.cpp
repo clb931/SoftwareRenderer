@@ -60,42 +60,26 @@ namespace ATLAS
 		DrawSpansBetweenEdges(edges[long_edge], edges[short_edge1]);
 		DrawSpansBetweenEdges(edges[long_edge], edges[short_edge2]);
 	}
-	void RenderContext::DrawSpansBetweenEdges(const Edge &long_edge, const Edge &short_edge)
+	void RenderContext::DrawSpansBetweenEdges(Edge &long_edge, Edge &short_edge)
 	{
-		real32 ydiff1 = long_edge.m_End.pos.y - long_edge.m_Start.pos.y;
-		if (ydiff1 == 0.0f)
+		if (long_edge.y_diff == 0.0f || short_edge.y_diff == 0.0f)
 			return;
-
-		real32 ydiff2 = short_edge.m_End.pos.y - short_edge.m_Start.pos.y;
-		if (ydiff2 == 0.0f)
-			return;
-
-		real32 xdiff1 = long_edge.m_End.pos.x - long_edge.m_Start.pos.x;
-		real32 xdiff2 = short_edge.m_End.pos.x - short_edge.m_Start.pos.x;
-		Color cdiff1 = long_edge.m_End.color - long_edge.m_Start.color;
-		Color cdiff2 = short_edge.m_End.color - short_edge.m_Start.color;
-
-		real32 factor1 = (short_edge.m_Start.pos.y - long_edge.m_Start.pos.y) / ydiff1;
-		real32 factorStep1 = 1.0f / ydiff1;
+		
+		real32 factor1 = (short_edge.m_Start.pos.y - long_edge.m_Start.pos.y) / long_edge.y_diff;
+		real32 factorStep1 = 1.0f / long_edge.y_diff;
 		real32 factor2 = 0.0f;
-		real32 factorStep2 = 1.0f / ydiff2;
-
-		real32 vdiff1 = long_edge.m_End.uv.v - long_edge.m_Start.uv.v;
-		real32 vdiff2 = short_edge.m_End.uv.v - short_edge.m_Start.uv.v;
-		real32 udiff1 = long_edge.m_End.uv.u - long_edge.m_Start.uv.u;
-		real32 udiff2 = short_edge.m_End.uv.u - short_edge.m_Start.uv.u;
+		real32 factorStep2 = 1.0f / short_edge.y_diff;
 
 		uint32 y_min = (uint32)ceil(short_edge.m_Start.pos.y);
 		uint32 y_max = (uint32)ceil(short_edge.m_End.pos.y);
 		for (uint32 y = y_min; y < y_max; ++y) {
 			Span span(
-				long_edge.m_Start.pos.x + (xdiff1 * factor1),
-				long_edge.m_Start.color + (cdiff1 * factor1),
-				UV(long_edge.m_Start.uv.u + (udiff1 * factor1), long_edge.m_Start.uv.v + (vdiff1 * factor1)),
-				short_edge.m_Start.pos.x + (xdiff2 * factor2),
-				short_edge.m_Start.color + (cdiff2 * factor2),
-				UV(short_edge.m_Start.uv.u + (udiff2 * factor2), short_edge.m_Start.uv.v + (vdiff2 * factor2))
-			);
+				long_edge.m_Start.pos.x + (long_edge.x_diff * factor1),
+				long_edge.m_Start.color + (long_edge.color_diff * factor1),
+				long_edge.m_Start.uv + (long_edge.uv_diff * factor1),
+				short_edge.m_Start.pos.x + (short_edge.x_diff * factor2),
+				short_edge.m_Start.color + (short_edge.color_diff * factor2),
+				short_edge.m_Start.uv + (short_edge.uv_diff * factor2));
 
 			DrawSpan(span, y);
 
@@ -103,7 +87,7 @@ namespace ATLAS
 			factor2 += factorStep2;
 		}
 	}
-	void RenderContext::DrawSpan(Span span, uint32 y)
+	void RenderContext::DrawSpan(Span &span, uint32 y)
 	{
 		if (span.x_diff == 0.0f)
 			return;
@@ -243,14 +227,25 @@ namespace ATLAS
 		if (v1.pos.y < v2.pos.y) {
 			m_Start = v1;
 			m_End = v2;
+			y_min = (uint32)ceil(v1.pos.y);
+			y_max = (uint32)ceil(v2.pos.y);
+			y_diff = v2.pos.y - v1.pos.y;
+			x_diff = (v2.pos.x - v1.pos.x);
+			color_diff = (v2.color - v1.color);
+			uv_diff = (v2.uv - v1.uv);
 		}
 		else {
 			m_Start = v2;
 			m_End = v1;
+			y_min = (uint32)ceil(v1.pos.y);
+			y_max = (uint32)ceil(v2.pos.y);
+			y_diff = v1.pos.y - v2.pos.y;
+			x_diff = v1.pos.x - v2.pos.x;
+			color_diff = v1.color - v2.color;
+			uv_diff = v1.uv - v2.uv;
 		}
 	}
-	Span::Span(
-		real32 x1, const Color &color1, UV uv1,
+	Span::Span(real32 x1, const Color &color1, UV uv1,
 		real32 x2, const Color &color2, UV uv2)
 	{
 		if (x1 < x2) {

@@ -55,9 +55,11 @@ namespace ATLAS
 		Vector2f &operator+=(const Vector2f &rhs);
 		Vector2f &operator-=(const Vector2f &rhs);
 		Vector2f &operator/=(const real32 &rhs);
+		Vector2f &operator*=(const real32 &rhs);
 
 		friend Vector2f operator+(Vector2f lhs, const Vector2f &rhs);
 		friend Vector2f operator-(Vector2f lhs, const Vector2f &rhs);
+		friend Vector2f operator*(Vector2f lhs, const real32 &rhs);
 		friend Vector2f operator/(Vector2f lhs, const real32 &rhs);
 
 		real32 a[2];
@@ -67,6 +69,7 @@ namespace ATLAS
 
 	Vector2f operator+(Vector2f lhs, const Vector2f &rhs);
 	Vector2f operator-(Vector2f lhs, const Vector2f &rhs);
+	Vector2f operator*(Vector2f lhs, const real32 &rhs);
 	Vector4f operator/(Vector4f lhs, const real32 &rhs);
 }
 
