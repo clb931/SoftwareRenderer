@@ -1,6 +1,4 @@
 #include "ATLAS_Stdafx.h"
-#include "ATLAS_Matrix.h"
-#include "ATLAS_Vector.h"
 
 namespace ATLAS
 {
@@ -128,7 +126,7 @@ namespace ATLAS
 			matX.a2[1][1] = cos_theta;
 			matX.a2[1][2] = -sin_theta;
 			matX.a2[2][1] = sin_theta;
-			matX.a2[2][3] = cos_theta;
+			matX.a2[2][2] = cos_theta;
 
 			mat = mat * matX;
 		}
@@ -162,6 +160,59 @@ namespace ATLAS
 
 			mat = mat * matZ;
 		}
+
+		return mat;
+	}
+	Matrix4f PerspectiveMatrix(real32 aspect_ratio, real32 FOV, real32 z_near, real32 z_far)
+	{
+		real32 tan_half_fov = tanf(ToRadians(0.5f * FOV));
+		real32 z_range = z_near = z_far;
+
+
+		Matrix4f Projection =
+		{
+			1.0f / (tan_half_fov * aspect_ratio), 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f / tan_half_fov, 0.0f, 0.0f,
+			0.0f, 0.0f, (-z_near - z_far) / z_range, 2.0f * z_far * z_near / z_range,
+			0.0f, 0.0f, 1.0f, 0.0f
+		};
+
+		return Projection;
+	}
+	Matrix4f OrthograohicMatrix(real32 aspect_ratio, real32 FOV, real32 z_near, real32 z_far)
+	{
+		real32 tan_half_fov = tanf(ToRadians(0.5f * FOV));
+		real32 height = z_near * tan_half_fov;
+		real32 width = height * aspect_ratio;
+		real32 left = -width, right = width;
+		real32 bottom = -height, top = height;
+		real32 depth = z_far - z_near;
+
+		Matrix4f Projection =
+		{
+			2.0f / width, 0.0f, 0.0f, -(right + left) / width,
+			0.0f, 2.0f / height, 0.0f, -(top + bottom) / height,
+			0.0f, 0.0f, -2.0f / depth, -(z_far + z_near) / depth,
+			0.0f, 0.0f, 0.0f, 1.0f
+		};
+
+		return Projection;
+	}
+	Matrix4f ScreenSpaceMatrix(uint32 width, uint32 height, real32 z_near, real32 z_far)
+	{
+		real32 half_width = (real32)width / 2.0f;
+		real32 half_height = (real32)height / 2.0f;
+
+		real32 half_zminus = (z_far - z_near) / 2.0f;
+		real32 half_zplus = (z_far + z_near) / 2.0f;
+
+		const Matrix4f mat =
+		{
+			half_width, 0.0f, 0.0f, half_width,
+			0.0f, half_height, 0.0f, half_height,
+			0.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f
+		};
 
 		return mat;
 	}

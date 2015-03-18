@@ -31,7 +31,8 @@ namespace ATLAS
 		real32 a[4];
 		struct { real32 x, y, z, w; };
 	};
-
+	typedef Vector4f Vertex;
+	
 	Vector4f operator+(Vector4f lhs, const Vector4f &rhs);
 	Vector4f operator-(Vector4f lhs, const Vector4f &rhs);
 	Vector4f operator*(Vector4f lhs, const Vector4f &rhs);

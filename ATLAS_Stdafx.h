@@ -23,6 +23,14 @@ typedef double		real64;
 #define PERSIST	static
 
 #define PI 3.14159265f
+#define ToRadians(a) ((a) * (PI / 180.0f))
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#define clamp(a, b, c) (min(max((a), (b)), (c)))
+
+#include "ATLAS_Vector.h"
+#include "ATLAS_Matrix.h"
+#include "ATLAS_Color.h"
 
 #define ATLAS_STDAFX_H
 #endif

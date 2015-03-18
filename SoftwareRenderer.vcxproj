@@ -78,17 +78,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ATLAS_RenderEngine.cpp" />
+    <ClCompile Include="ATLAS_Color.cpp" />
+    <ClCompile Include="ATLAS_model.cpp" />
+    <ClCompile Include="ATLAS_RenderContext.cpp" />
     <ClCompile Include="ATLAS_Matrix.cpp" />
     <ClCompile Include="ATLAS_Stdafx.cpp" />
+    <ClCompile Include="ATLAS_Texture.cpp" />
     <ClCompile Include="ATLAS_Vector.cpp" />
     <ClCompile Include="ATLAS_Win32.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ATLAS_RenderEngine.h" />
+    <ClInclude Include="ATLAS_Color.h" />
+    <ClInclude Include="ATLAS_RenderContext.h" />
     <ClInclude Include="ATLAS_Matrix.h" />
     <ClInclude Include="ATLAS_Stdafx.h" />
+    <ClInclude Include="ATLAS_Texture.h" />
     <ClInclude Include="ATLAS_Vector.h" />
+    <ClInclude Include="ATLAS_Model.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
