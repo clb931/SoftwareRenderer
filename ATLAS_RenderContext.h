@@ -30,41 +30,27 @@ namespace ATLAS
 		Gradients(Vertex bot, Vertex mid, Vertex top);
 
 		template<typename T>
-		T CalculateXStep(T t[3], Vertex bot, Vertex mid, Vertex top, real32 one_over_dx);
+		T CalculateXStep(T t[3], Vertex pVertices[3], real32 one_over_dx);
 		template<typename T>
-		T CalculateYStep(T t[3], Vertex bot, Vertex mid, Vertex top, real32 one_over_dy);
+		T CalculateYStep(T t[3], Vertex pVertices[3], real32 one_over_dy);
 
-		Color color_x_step;
-		Color color_y_step;
+		real32	a_one_over_z[3];
+		real32	d_one_over_z_dx, d_one_over_z_dy;
+		UV		a_uv_over_z[3];
+		UV		d_uv_over_z_dx, d_uv_over_z_dy;
+		Color	a_c_over_z[3];
+		Color	d_c_over_z_dx, d_c_over_z_dy;
 	};
 	struct Edge
 	{
-		Edge(Vertex bot, Vertex top, Gradients gradients);
+		Edge(Vertex bot, Vertex top, Gradients &gradients, int32 i);
+		int32 operator++();
 
-		Vertex m_Start, m_End;
-
-		uint32	y_min;
-		uint32	y_max;
-
-		real32	x_diff;
-		real32	y_diff;
-		Color	color_diff;
-		UV		uv_diff;
-	};
-	struct Span
-	{
-		Span(Vertex v1, Vertex v2, Gradients gradients);
-		void operator++();
-
-		uint32	x_min;
-		uint32	x_max;
-
-		real32	x_diff;
-		real32	x_step;
-		Color	color;
-		Color	color_step;
-		UV		uv;
-		UV		uv_step;
+		real32 x, x_step;
+		int32 y, height;
+		real32 one_over_z, one_over_z_step;
+		UV uv_over_z, uv_over_z_step;
+		Color color_over_z, color_over_z_step;
 	};
 
 	class RenderContext
@@ -76,7 +62,7 @@ namespace ATLAS
 		void DrawScene();
 		void DrawTriangle(Vertex v1, Vertex v2, Vertex v3);
 		void DrawSpansBetweenEdges(Edge &long_edge, Edge &short_edge);
-		void DrawSpan(Span &span, uint32 y);
+		void DrawScanLine(Edge *left, Edge *right, uint32 y);
 		void DrawLine(Vertex v1, Vertex v2);
 		void DrawPoint(Vertex v);
 		Color GetTexel(UV uv);

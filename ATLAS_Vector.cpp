@@ -166,6 +166,12 @@ namespace ATLAS
 		v -= rhs.v;
 		return *this;
 	}
+	Vector2f &Vector2f::operator*=(const Vector2f &rhs)
+	{
+		u *= rhs.u;
+		v *= rhs.v;
+		return *this;
+	}
 	Vector2f &Vector2f::operator*=(const real32 &rhs)
 	{
 		u *= rhs;
@@ -186,6 +192,10 @@ namespace ATLAS
 	Vector2f operator-(Vector2f lhs, const Vector2f &rhs)
 	{
 		return lhs -= rhs;
+	}
+	Vector2f operator*(Vector2f lhs, const Vector2f &rhs)
+	{
+		return lhs *= rhs;
 	}
 	Vector2f operator*(Vector2f lhs, const real32 &rhs)
 	{
