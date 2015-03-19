@@ -43,6 +43,8 @@ Texture::Texture(const char *file_path) : data(nullptr)
 			j += 4;
 		}
 
+		pitch = width * (bpp / 8);
+
 		OutputDebugStringA("Clossing File...\n\n");
 		fclose(pFile);
 	}

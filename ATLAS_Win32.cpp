@@ -169,14 +169,14 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 Vertex verts[]
 {
-	Vertex(Vector4f(-0.5f, -0.5f, 0.5f), UV(0.0f, 0.0f), Color::RED),	// left  - top    - front
-	Vertex(Vector4f(0.5f, -0.5f, 0.5f), UV(1.0f, 0.0f), Color::GREEN),	// right - top    - front
-	Vertex(Vector4f(0.5f, -0.5f, -0.5f), UV(1.0f, 0.0f), Color::BLUE),	// left  - bottom - front
+	Vertex(Vector4f(-0.5f, -0.5f, 0.5f), UV(0.0f, 0.0f), Color::YELLOW),	// left  - top    - front
+	Vertex(Vector4f(0.5f, -0.5f, 0.5f), UV(1.0f, 0.0f), Color::WHITE),	// right - top    - front
+	Vertex(Vector4f(0.5f, -0.5f, -0.5f), UV(1.0f, 0.0f), Color::CYAN),	// left  - bottom - front
 	Vertex(Vector4f(-0.5f, -0.5f, -0.5f), UV(0.0f, 0.0f), Color::GREEN),// right - bottom - front
-	Vertex(Vector4f(-0.5f, 0.5f, 0.5f), UV(0.0f, 1.0f), Color::BLUE),	// left  - top    - back
-	Vertex(Vector4f(0.5f, 0.5f, 0.5f), UV(1.0f, 1.0f), Color::GREEN),	// right - top    - back
-	Vertex(Vector4f(0.5f, 0.5f, -0.5f), UV(1.0f, 1.0f), Color::RED), 	// left  - bottom - back
-	Vertex(Vector4f(-0.5f, 0.5f, -0.5f), UV(0.0f, 1.0f), Color::GREEN)	// right - bottom - back
+	Vertex(Vector4f(-0.5f, 0.5f, 0.5f), UV(0.0f, 1.0f), Color::RED),	// left  - top    - back
+	Vertex(Vector4f(0.5f, 0.5f, 0.5f), UV(1.0f, 1.0f), Color::MAGENTA),	// right - top    - back
+	Vertex(Vector4f(0.5f, 0.5f, -0.5f), UV(1.0f, 1.0f), Color::BLUE), 	// left  - bottom - back
+	Vertex(Vector4f(-0.5f, 0.5f, -0.5f), UV(0.0f, 1.0f), Color::BLACK)	// right - bottom - back
 };
 ATLAS::Polygon polys[]
 {
@@ -231,6 +231,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		(real32)win32_window.fb_width / (real32)win32_window.fb_height,
 		70.0f, 0.1f, 1000.0f);
 
+	char str[32] = "";
 	LARGE_INTEGER current_time, last_time, frequency;
 	QueryPerformanceFrequency(&frequency);
 	int64 counter_frequency = frequency.QuadPart;
@@ -242,17 +243,27 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		real64 delta_time = ((1000.0f * (real64)elapsed_time) / (real64)counter_frequency);
 		last_time = current_time;
 
+		sprintf_s(str, 32, "ms: %.2f\n", delta_time / 1000.0);
+		OutputDebugStringA(str);
+
 		PERSIST real32 rotY = 0.0f;
 		rotY += (real32)delta_time / 10.0f;
 
-		Matrix4f t = TranslationMatrix(0.0f, 0.0f, 2.0f);
-		Matrix4f r = RotationMatrix(rotY, rotY, rotY);
+		Matrix4f t = TranslationMatrix(0.0f, 0.0f, -20.0f);
+		Matrix4f r = RotationMatrix(0.0f, rotY, 0.0f);
 		Matrix4f MV = t * r;
 		Matrix4f MVP = P * MV;
 		cube.m_TransformationMatrix = MVP;
+
+		t = TranslationMatrix(0.0f, 0.0f, -300.0f);
+		r = RotationMatrix(rotY, rotY, rotY);
+		MV = t * r;
+		MVP = P * MV;
+		spaceship.m_TransformationMatrix = MVP;
 				
 		rc.Clear(FRAME_BUFFER | DEPTH_BUFFER);
-			DrawModel(&rc, &cube);
+		DrawModel(&rc, &cube);
+		DrawModel(&rc, &spaceship);
 		Win32::SwapBuffers(&win32_window);
 	}
 

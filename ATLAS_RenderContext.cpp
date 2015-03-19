@@ -15,6 +15,8 @@ namespace ATLAS
 		m_FrameBuffer = buffer;
 		m_Width = width;
 		m_Height = height;
+		//if (style & DEPTH_BUFFER)
+		m_DepthBuffer = new real32[m_Width * m_Height];
 
 		m_ScreenTransform = ScreenSpaceMatrix(m_Width, m_Height);
 		
@@ -25,6 +27,8 @@ namespace ATLAS
 	}
 	RenderContext::~RenderContext()
 	{
+		if (m_DepthBuffer)
+			delete[] m_DepthBuffer;
 	}
 
 	void RenderContext::DrawTriangle(Vertex v1, Vertex v2, Vertex v3)
@@ -34,46 +38,39 @@ namespace ATLAS
 		v3.pos = (m_ScreenTransform * v3.pos) / v3.pos.w;
 
 		if (m_Flags & CULL_FACES)
-			if (Normalize(v1.pos, v2.pos, v3.pos).z >= 0)
+			if (Normalize(v1.pos, v2.pos, v3.pos).z <= 0)
 				return;
 
-		Vertex top = v1;
-		Vertex mid = v2;
-		Vertex bot = v3;
+		Vertex pVertices[3] = { v1, v2, v3 };
 		Vertex temp;
 
-		if (top.pos.y < mid.pos.y) {
-			temp = top;
-			top = mid;
-			mid = temp;
+		if (pVertices[2].pos.y < pVertices[1].pos.y) {
+			temp = pVertices[2];
+			pVertices[2] = pVertices[1];
+			pVertices[1] = temp;
 		}
-		if (mid.pos.y < bot.pos.y) {
-			temp = mid;
-			mid = bot;
-			bot = temp;
+		if (pVertices[1].pos.y < pVertices[0].pos.y) {
+			temp = pVertices[1];
+			pVertices[1] = pVertices[0];
+			pVertices[0] = temp;
 		}
-		if (top.pos.y < mid.pos.y) {
-			temp = top;
-			top = mid;
-			mid = temp;
+		if (pVertices[2].pos.y < pVertices[1].pos.y) {
+			temp = pVertices[2];
+			pVertices[2] = pVertices[1];
+			pVertices[1] = temp;
 		}
 
-		m_Gradients = Gradients(bot, mid, top);
-		Edge bot2top(bot, top, m_Gradients, 0);
-		Edge bot2mid(bot, mid, m_Gradients, 0);
-		Edge mid2top(mid, top, m_Gradients, 1);
-		real32 xmax1 = bot2top.x + bot2top.height * bot2top.x_step;
-		real32 xmax2 = bot2mid.x + bot2mid.height * bot2mid.x_step;
-		real32 xmax3 = mid2top.x + mid2top.height * mid2top.x_step;
+		Edge bot2top(pVertices[0], pVertices[2]);
+		Edge bot2mid(pVertices[0], pVertices[1]);
+		Edge mid2top(pVertices[1], pVertices[2]);
 		Edge *pLeft, *pRight;
 
 		pLeft = bot2mid.x < bot2top.x ? &bot2mid : &bot2top;
 		pRight = bot2mid.x > bot2top.x ? &bot2mid : &bot2top;
 
-		uint32 y_min = bot2mid.y;
-		uint32 y_max = bot2mid.height + 1;
-		for (uint32 y = y_min; y < y_max; ++y)
-		{
+		uint32 y_min = max(0.0f, bot2mid.y_min);
+		uint32 y_max = min(bot2mid.y_max, m_Height - 1);
+		for (uint32 y = y_min; y < y_max; ++y) {
 			DrawScanLine(pLeft, pRight, y);
 			++bot2mid;
 			++bot2top;
@@ -82,10 +79,9 @@ namespace ATLAS
 		pLeft = mid2top.x < bot2top.x ? &mid2top : &bot2top;
 		pRight = mid2top.x > bot2top.x ? &mid2top : &bot2top;
 
-		y_min = mid2top.y;
-		y_max = mid2top.height + 1;
-		for (uint32 y = y_min; y < y_max; ++y)
-		{
+		y_min = max(0.0f, mid2top.y_min);
+		y_max = min(mid2top.y_max, m_Height);
+		for (uint32 y = y_min; y < y_max; ++y) {
 			DrawScanLine(pLeft, pRight, y);
 			++mid2top;
 			++bot2top;
@@ -93,24 +89,40 @@ namespace ATLAS
 	}
 	void RenderContext::DrawScanLine(Edge *pLeft, Edge *pRight, uint32 y)
 	{
-		int32 x_min = (int32)ceil(pLeft->x);
-		int32 x_max = (int32)ceil(pRight->x);
+		int32 x_min = max(0.0f, (int32)ceil(pLeft->x));
+		int32 x_max = min((int32)ceil(pRight->x), m_Width - 1);;
 		real32 x_prestep = x_min - pLeft->x;
-		
-		real32 one_over_z = pLeft->one_over_z + x_prestep * m_Gradients.d_one_over_z_dx;
-		UV uv_over_z = pLeft->uv_over_z + x_prestep * m_Gradients.d_uv_over_z_dx;
-		Color color_over_z = pLeft->color_over_z + m_Gradients.d_c_over_z_dx * x_prestep;
+
+		real32	x_diff = x_max - x_min;
+		real32	depth_step = (pRight->z - pLeft->z) / x_diff;
+		real32	depth = pLeft->z + depth_step * x_prestep;
+		real32	one_over_z_step = (pRight->one_over_z - pLeft->one_over_z) / x_diff;
+		real32	one_over_z = pLeft->one_over_z + one_over_z_step * x_prestep;
+		Color	color_step = (pRight->color - pLeft->color) / x_diff;
+		Color	color = pLeft->color + color_step * x_prestep;
+		UV		uv_step = (pRight->uv - pLeft->uv) / x_diff;
+		UV		uv = pLeft->uv + uv_step * x_prestep;
+		real32	*pDepthBuffer = (real32 *)m_DepthBuffer + y * m_Width;
 
 		for (uint32 x = x_min; x < x_max; ++x) {
-			real32 z = 1.0f / one_over_z;
-			UV uv = uv_over_z * z;
-			Color color = color_over_z * z;
-			//Color texel = GetTexel(uv);
-			DrawPixel(x, y, color);
+			Color	pixel = color;
+			Color	texel = GetTexel(uv);
 
-			one_over_z += m_Gradients.d_one_over_z_dx;
-			uv_over_z += m_Gradients.d_uv_over_z_dx;
-			color_over_z += m_Gradients.d_c_over_z_dx;
+			if (m_DepthBuffer) {
+				if (depth < *(pDepthBuffer + x)) {
+					*(pDepthBuffer + x) = depth;
+					DrawPixel(x, y, texel);
+				} else {
+					printf("");
+				}
+			} else {
+				DrawPixel(x, y, pixel);
+			}
+
+			depth += depth_step;
+			one_over_z += one_over_z_step;
+			color += color_step;
+			uv += uv_step;
 		}
 	}
 	
@@ -206,12 +218,14 @@ namespace ATLAS
 	}
 	void RenderContext::Clear(uint8 flags)
 	{
-		if (flags & FRAME_BUFFER){
-			uint32 *pixel = (uint32 *)m_FrameBuffer;
+		uint32 *pixel = (uint32 *)m_FrameBuffer;
+		uint32 *depth = (uint32 *)m_DepthBuffer;
 
-			for (uint32 i = 0; i < m_Height * m_Width; ++i) {
+		for (uint32 i = 0; i < m_Height * m_Width; ++i) {
+			if (flags & FRAME_BUFFER)
 				pixel[i] = m_ClearColor;
-			}
+			if (flags & DEPTH_BUFFER)
+				depth[i] = 1.0f;
 		}
 	}
 
@@ -234,89 +248,39 @@ namespace ATLAS
 		else
 			m_Flags &= ~flag;
 	}
-	
-	Gradients::Gradients(Vertex bot, Vertex mid, Vertex top)
+
+	Edge::Edge(Vertex bot, Vertex top)
 	{
-		Vertex pVertices[3] = { bot, mid, top };
-		int32 counter;
+		y_min = (uint32)ceil(bot.pos.y);
+		y_max = (uint32)ceil(top.pos.y);
 
-		real32 one_over_dx = 1.0f /
-			(((pVertices[1].pos.x - pVertices[2].pos.x) *
-			(pVertices[0].pos.y - pVertices[2].pos.y)) -
-			((pVertices[0].pos.x - pVertices[2].pos.x) *
-			(pVertices[1].pos.y - pVertices[2].pos.y)));
-		real32 one_over_dy = -one_over_dx;
+		real32 y_prestep = y_min - bot.pos.y;
 
-		for (counter = 0; counter < 3; ++counter) {
-			real32 const one_over_z = 1 / pVertices[counter].pos.w;
-			a_one_over_z[counter] = one_over_z;
-			a_uv_over_z[counter] = pVertices[counter].uv * one_over_z;
-			a_c_over_z[counter] = pVertices[counter].color * one_over_z;
-		}
+		real32	y_diff = top.pos.y - bot.pos.y;
+		real32	x_diff = top.pos.x - bot.pos.x;
 
-		d_one_over_z_dx = CalculateYStep<real32>(a_one_over_z, pVertices, one_over_dx);
-		d_one_over_z_dy = CalculateYStep<real32>(a_one_over_z, pVertices, one_over_dy);
-
-		d_uv_over_z_dx = CalculateYStep<UV>(a_uv_over_z, pVertices, one_over_dx);
-		d_uv_over_z_dy = CalculateYStep<UV>(a_uv_over_z, pVertices, one_over_dy);
-
-		d_c_over_z_dx = CalculateYStep<Color>(a_c_over_z, pVertices, one_over_dx);
-		d_c_over_z_dy = CalculateYStep<Color>(a_c_over_z, pVertices, one_over_dy);
-	}	
-	template<typename T>
-	T Gradients::CalculateXStep(T t[3], Vertex pVertices[3], real32 one_over_dx)
-	{
-		return ((((t[1] - t[2]) * (pVertices[0].pos.y - pVertices[2].pos.y)) -
-			((t[0] - t[2]) * (pVertices[1].pos.y - pVertices[2].pos.y))) * one_over_dx);
-	}
-	template<typename T>
-	T Gradients::CalculateYStep(T t[3], Vertex pVertices[3], real32 one_over_dy)
-	{
-		return ((((t[1] - t[2]) * (pVertices[0].pos.x - pVertices[2].pos.x)) -
-			((t[0] - t[2]) * (pVertices[1].pos.x - pVertices[2].pos.x))) * one_over_dy);
-	}
-	
-	Edge::Edge(Vertex bot, Vertex top, Gradients &gradients, int32 i)
-	{
-		y = (int32)ceil(bot.pos.y);
-		int32 y_end = (int32)ceil(top.pos.y);
-		height = y_end - 1;
-
-		real32 y_prestep = y - bot.pos.y;
-
-		real32 real_height = top.pos.y - bot.pos.y;
-		real32 real_width = top.pos.x - bot.pos.x;
-
-		x = ((real_width * y_prestep) / real_height) + bot.pos.x;
-		x_step = real_width / real_height;
+		x_step = x_diff / y_diff;
+		x = bot.pos.x + x_step * y_prestep;
 		real32 x_prestep = x - bot.pos.x;
 
-		one_over_z = gradients.a_one_over_z[i] +
-			y_prestep * gradients.d_one_over_z_dy + 
-			x_prestep * gradients.d_one_over_z_dx;
-		one_over_z_step = x_step *
-			gradients.d_one_over_z_dx + gradients.d_one_over_z_dy;
+		z_step = (top.pos.z - bot.pos.z) / y_diff;
+		z = bot.pos.z + z_step * y_prestep;
 
-		uv_over_z = gradients.a_uv_over_z[i] +
-			y_prestep * gradients.d_uv_over_z_dy +
-			x_prestep * gradients.d_uv_over_z_dx;
-		uv_over_z_step = x_step *
-			gradients.d_uv_over_z_dx + gradients.d_uv_over_z_dy;
+		one_over_z_step = ((1.0f / top.pos.w) - (1.0f / bot.pos.w)) / y_diff;
+		one_over_z = (1.0f / bot.pos.w) + one_over_z_step * y_prestep;
 
-		color_over_z = gradients.a_c_over_z[i] +
-			gradients.d_c_over_z_dy * y_prestep + 
-			gradients.d_c_over_z_dx * x_prestep;
-		color_over_z_step = gradients.d_c_over_z_dy + 
-			gradients.d_c_over_z_dx * x_step;
+		color_step = (top.color - bot.color) / y_diff;
+		color = bot.color + color_step * y_prestep;
+
+		uv_step = (top.uv - bot.uv) / y_diff;
+		uv = bot.uv + uv_step * y_prestep;
 	}
-	int32 Edge::operator++()
+	void Edge::operator++()
 	{
 		x += x_step;
-		y++;
-		height--;
-		uv_over_z += uv_over_z_step;
+		z += z_step;
+		color += color_step;
+		uv += uv_step;
 		one_over_z += one_over_z_step;
-		color_over_z += color_over_z_step;
-		return height;
 	}
 }

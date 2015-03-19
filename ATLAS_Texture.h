@@ -12,6 +12,7 @@ namespace ATLAS
 		uint32 width;
 		uint32 height;
 		uint32 bpp;
+		uint32 pitch;
 		uint32 id;
 
 	private:

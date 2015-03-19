@@ -23,34 +23,18 @@ namespace ATLAS
 	{
 		CULL_FACES = 1
 	};
-
-	struct Gradients
-	{
-		Gradients(){}
-		Gradients(Vertex bot, Vertex mid, Vertex top);
-
-		template<typename T>
-		T CalculateXStep(T t[3], Vertex pVertices[3], real32 one_over_dx);
-		template<typename T>
-		T CalculateYStep(T t[3], Vertex pVertices[3], real32 one_over_dy);
-
-		real32	a_one_over_z[3];
-		real32	d_one_over_z_dx, d_one_over_z_dy;
-		UV		a_uv_over_z[3];
-		UV		d_uv_over_z_dx, d_uv_over_z_dy;
-		Color	a_c_over_z[3];
-		Color	d_c_over_z_dx, d_c_over_z_dy;
-	};
+	
 	struct Edge
 	{
-		Edge(Vertex bot, Vertex top, Gradients &gradients, int32 i);
-		int32 operator++();
+		Edge(Vertex bot, Vertex top);
+		void operator++();
 
-		real32 x, x_step;
-		int32 y, height;
-		real32 one_over_z, one_over_z_step;
-		UV uv_over_z, uv_over_z_step;
-		Color color_over_z, color_over_z_step;
+		uint32	y_min, y_max;
+		real32	x_step, x;
+		real32	z_step, z;
+		real32	one_over_z_step, one_over_z;
+		Color	color_step, color;
+		UV		uv_step, uv;
 	};
 
 	class RenderContext
@@ -61,7 +45,6 @@ namespace ATLAS
 
 		void DrawScene();
 		void DrawTriangle(Vertex v1, Vertex v2, Vertex v3);
-		void DrawSpansBetweenEdges(Edge &long_edge, Edge &short_edge);
 		void DrawScanLine(Edge *left, Edge *right, uint32 y);
 		void DrawLine(Vertex v1, Vertex v2);
 		void DrawPoint(Vertex v);
@@ -76,11 +59,11 @@ namespace ATLAS
 
 	private:
 		void			*m_FrameBuffer;
+		void			*m_DepthBuffer;
 		uint32			m_Width;
 		uint32			m_Height;
 
 		Texture			*m_CurrentTexture;
-		Gradients		m_Gradients;
 		Matrix4f		m_ScreenTransform;
 		Color32			m_ClearColor;
 		int32			m_PointSize;
