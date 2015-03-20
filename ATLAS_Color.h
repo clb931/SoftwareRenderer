@@ -2,6 +2,22 @@
 
 namespace ATLAS
 {
+	enum BlendMode
+	{
+		BLEND_NORMAL,
+		BLEND_ADD,
+		BLEND_SUBTRACT,
+		BLEND_MULTIPLY,
+		BLEND_DIVIDE,
+		BLEND_SCREEN,
+		BLEND_OVERLAY,
+		BLEND_COLOR_DOGE,
+		BLEND_COLOR_BURN,
+		BLEND_DIFFERENCE,
+		BLEND_DARKEN,
+		BLEND_LIGHTEN
+	};
+
 	typedef uint32 Color32;
 	class Color
 	{
@@ -33,10 +49,13 @@ namespace ATLAS
 
 	Color operator+(Color bottom, const Color &top);
 
+	char *GetBlendModeName(BlendMode blend_mode);
+	Color Blend(Color bottom, Color top, BlendMode blend_mode);
 	Color BlendNormal(Color bottom, Color top);
 	Color BlendAdd(Color bottom, Color top);
 	Color BlendSubtract(Color bottom, Color top);
 	Color BlendMultiply(Color bottom, Color top);
+	Color BlendDivide(Color bottom, Color top);
 	Color BlendScreen(Color bottom, Color top);
 	Color BlendOverlay(Color bottom, Color top);
 	Color BlendDodge(Color bottom, Color top);

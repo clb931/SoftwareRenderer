@@ -25,7 +25,7 @@ void Vertex::PerspectiveDivide()
 
 	norm /= pos.w;
 
-	uv.u /= pos.w;
+	uv /= pos.w;
 
 	color =  color / pos.w;
 }

@@ -19,11 +19,10 @@ namespace ATLAS
 		m_DepthBuffer = new real32[m_Width * m_Height];
 
 		m_ScreenTransform = ScreenSpaceMatrix(m_Width, m_Height);
-		
 		SetClearColor(Color::BLACK);
 		Clear(FRAME_BUFFER | DEPTH_BUFFER);
-
 		SetPointSize(1);
+		m_Flags = 0;
 	}
 	RenderContext::~RenderContext()
 	{
@@ -31,7 +30,7 @@ namespace ATLAS
 			delete[] m_DepthBuffer;
 	}
 
-	void RenderContext::DrawTriangle(Vertex v1, Vertex v2, Vertex v3)
+	void RenderContext::DrawTriangle(Vertex v1, Vertex v2, Vertex v3, AtlasEnum style)
 	{
 		std::vector<Vertex> vertices;
 		std::vector<Vertex> temp;
@@ -46,7 +45,17 @@ namespace ATLAS
 			Vertex *start = &vertices.at(0);
 
 			for (uint32 i = 0; i < vertices.size() - 1; ++i) {
-				FillTriangle(*start, vertices.at(i), vertices.at(i + 1));
+				if (style == DRAW_TRIANGLES) {
+					FillTriangle(*start, vertices.at(i), vertices.at(i + 1));
+				} else if (style == DRAW_LINES) {
+					DrawLine(*start, vertices.at(i));
+					DrawLine(vertices.at(i), vertices.at(i + 1));
+					DrawLine(vertices.at(i + 1), *start);
+				} else if (style == DRAW_POINTS) {
+					DrawPoint(*start);
+					DrawPoint(vertices.at(i));
+					DrawPoint(vertices.at(i + 1));
+				}
 			}
 		}
 	}
@@ -195,15 +204,15 @@ namespace ATLAS
 		//}
 	}
 	bool32 RenderContext::ClipPolygonAxis(std::vector<Vertex> *vertices,
-		std::vector<Vertex> *temp, real32 component_index)
+		std::vector<Vertex> *temp, int32 axis)
 	{
-		ClipPolygonComponent(vertices, component_index, 1.0f, temp);
+		ClipPolygonComponent(vertices, axis, 1.0f, temp);
 		vertices->clear();
 
 		if (temp->empty())
 			return false;
 
-		ClipPolygonComponent(temp, component_index, -1.0f, vertices);
+		ClipPolygonComponent(temp, axis, -1.0f, vertices);
 		temp->clear();
 
 		return !vertices->empty();
@@ -283,13 +292,13 @@ namespace ATLAS
 			Color	pixel = color * z;
 			Color	texel = GetTexel(uv.u * z, uv.v * z);
 
-			if (m_DepthBuffer) {
+			if (m_DepthBuffer && m_Flags & DEPTH_TEST) {
 				if (depth < *(pDepthBuffer + x)) {
 					*(pDepthBuffer + x) = depth;
-					DrawPixel(x, y, BlendNormal(pixel, texel));
+					DrawPixel(x, y, Blend(pixel, texel, m_CurrentBlendMode));
 				}
 			} else {
-				DrawPixel(x, y, pixel);
+				DrawPixel(x, y, Blend(pixel, texel, m_CurrentBlendMode));
 			}
 
 			depth += depth_step;
@@ -325,6 +334,10 @@ namespace ATLAS
 	{
 		m_CurrentTexture = texture;
 	}
+	void RenderContext::SetBlendMode(BlendMode blend_mode)
+	{
+		m_CurrentBlendMode = blend_mode;
+	}
 	void RenderContext::SetClearColor(const Color &color)
 	{
 		m_ClearColor = color.toColor32();
@@ -339,6 +352,10 @@ namespace ATLAS
 			m_Flags |= flag;
 		else
 			m_Flags &= ~flag;
+	}
+	bool32 RenderContext::GetFlag(AtlasFlag flag)
+	{
+		return (m_Flags & flag);
 	}
 
 	Edge::Edge(Vertex bot, Vertex top)

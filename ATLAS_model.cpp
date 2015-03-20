@@ -38,6 +38,16 @@ void CalculateNormals(Model *model)
 	delete[] edges;
 }
 
+Model::Model()
+{
+	m_Name[0] = '\0';
+	m_TransformationMatrix = IdentityMatrix;
+	m_NumVertices = 0;
+	m_Vertices = nullptr;
+	m_NumPolygons = 0;
+	m_Polygons = nullptr;
+	m_Texture = 0;
+}
 Model::Model(const char *file_path, Texture *texture)
 {
 	char str[256] = "";
@@ -70,17 +80,13 @@ Model::Model(const char *file_path, Texture *texture)
 				break;
 
 			case 0x4000: {
-				char name[32] = "\t";
-				uint32 i = 1;
+				uint32 i = 0;
 				char c = '\0';
 
 				do {
 					fread(&c, sizeof(char), 1, pFile);
-					name[i++] = c;
+					m_Name[i++] = c;
 				} while (c != '\0' && i < 30);
-
-				name[i++] = '\n';
-				OutputDebugStringA(name);
 			} break;
 
 			case 0x4110: {
@@ -150,6 +156,7 @@ Model::Model(Vertex *vertices, uint32 num_vertices,
 	ATLAS::Polygon *polygons, uint32 num_polygons,
 	Texture *texture)
 {
+	m_Name[0] = '\0';
 	m_TransformationMatrix = IdentityMatrix;
 	m_NumVertices = num_vertices;
 	m_Vertices = new Vertex[num_vertices];
@@ -168,6 +175,23 @@ Model::Model(Vertex *vertices, uint32 num_vertices,
 }
 Model::~Model()
 {
-	delete[] m_Vertices;
-	delete[] m_Polygons;
+	if (m_NumVertices)
+		delete[] m_Vertices;
+	if (m_NumPolygons)
+		delete[] m_Polygons;
+}
+
+void Model::SetName(char *name)
+{
+	uint32 i = 0;
+
+	while (name[i] != '\0' && i < 30) {
+		m_Name[i] = name[i++];
+	}
+
+	m_Name[i] = '\0';
+}
+char *Model::GetName()
+{
+	return m_Name;
 }

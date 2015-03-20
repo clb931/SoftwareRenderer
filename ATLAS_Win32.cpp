@@ -140,7 +140,45 @@ namespace ATLAS
 	}
 }
 
-GLOBAL ATLAS::Win32::Window win32_window = {};
+GLOBAL Win32::Window win32_window = {};
+GLOBAL bool32 CULL_FACES_ON = true;
+GLOBAL bool32 DEPTH_TEST_ON = true;
+GLOBAL AtlasEnum DRAW_STYLE = DRAW_TRIANGLES;
+GLOBAL BlendMode BLEND_MODE = BLEND_NORMAL;
+
+Texture font("font1.bmp");
+Vertex verts[]
+{
+	Vertex(Vector4f(-0.5f, -0.5f, 0.5f), UV(0.0f, 0.0f), Color::YELLOW),// left  - bottom	- back
+		Vertex(Vector4f(0.5f, -0.5f, 0.5f), UV(1.0f, 0.0f), Color::WHITE),	// right - bottom	- back
+		Vertex(Vector4f(0.5f, -0.5f, -0.5f), UV(1.0f, 0.0f), Color::CYAN),	// left  - bottom	- front
+		Vertex(Vector4f(-0.5f, -0.5f, -0.5f), UV(0.0f, 0.0f), Color::GREEN),// right - bottom	- front
+		Vertex(Vector4f(-0.5f, 0.5f, 0.5f), UV(0.0f, 1.0f), Color::RED),	// left  - top		- back
+		Vertex(Vector4f(0.5f, 0.5f, 0.5f), UV(1.0f, 1.0f), Color::MAGENTA),	// right - top		- back
+		Vertex(Vector4f(0.5f, 0.5f, -0.5f), UV(1.0f, 1.0f), Color::BLUE), 	// left  - top		- front
+		Vertex(Vector4f(-0.5f, 0.5f, -0.5f), UV(0.0f, 1.0f), Color::BLACK)	// right - top		- front
+};
+ATLAS::Polygon polys[]
+{
+	ATLAS::Polygon(0, 1, 4),	//front
+		ATLAS::Polygon(4, 1, 5),	//front
+		ATLAS::Polygon(1, 2, 5),	//bottom
+		ATLAS::Polygon(2, 6, 5),	//bottom
+		ATLAS::Polygon(2, 3, 6),	//back
+		ATLAS::Polygon(3, 7, 6),	//back
+		ATLAS::Polygon(3, 0, 7),	//top
+		ATLAS::Polygon(0, 4, 7),	//top
+		ATLAS::Polygon(4, 5, 7),	//right
+		ATLAS::Polygon(5, 6, 7),	//right
+		ATLAS::Polygon(3, 2, 0),	//left
+		ATLAS::Polygon(2, 1, 0)	//left
+};
+Texture cubetexture("texture.bmp");
+Model cube(verts, 8, polys, 12, &cubetexture);
+Texture spaceshiptexture("spaceshiptexture.bmp");
+Model spaceship("spaceship.3DS", &spaceshiptexture);
+Model *model = &spaceship;
+real32 z_position = -300.0f;
 
 LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -153,6 +191,29 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYDOWN: {
 		if (wParam == VK_ESCAPE)
 			PostQuitMessage(0);
+		if (wParam == VK_F1) {
+			model = &spaceship;
+			z_position = -300.0f;
+		}
+		if (wParam == VK_F2) {
+			model = &cube;
+			z_position = -2.0f;
+		}
+		if (wParam == VK_F3) {
+			BLEND_MODE = (BlendMode)(BLEND_MODE + 1);
+			if (BLEND_MODE > BLEND_LIGHTEN)
+				BLEND_MODE = BLEND_NORMAL;
+		}
+		if (wParam == VK_F4)
+			DRAW_STYLE = DRAW_TRIANGLES;
+		if (wParam == VK_F5)
+			DRAW_STYLE = DRAW_LINES;
+		if (wParam == VK_F6)
+			DRAW_STYLE = DRAW_POINTS;
+		if (wParam == VK_F7)
+			DEPTH_TEST_ON = !DEPTH_TEST_ON;
+		if (wParam == VK_F8)
+			CULL_FACES_ON = !CULL_FACES_ON;
 	} break;
 
 	case WM_CLOSE: {
@@ -167,50 +228,93 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return result;
 }
 
-Vertex verts[]
+void DrawString(RenderContext *render_context, const char *str, Texture *font,
+	real32 size = 24.0f, Color color = Color::WHITE, real32 x = -1.0f, real32 y = 1.0f)
 {
-	Vertex(Vector4f(-0.5f, -0.5f, 0.5f), UV(0.0f, 0.0f), Color::YELLOW),// left  - bottom	- back
-	Vertex(Vector4f(0.5f, -0.5f, 0.5f), UV(1.0f, 0.0f), Color::WHITE),	// right - bottom	- back
-	Vertex(Vector4f(0.5f, -0.5f, -0.5f), UV(1.0f, 0.0f), Color::CYAN),	// left  - bottom	- front
-	Vertex(Vector4f(-0.5f, -0.5f, -0.5f), UV(0.0f, 0.0f), Color::GREEN),// right - bottom	- front
-	Vertex(Vector4f(-0.5f, 0.5f, 0.5f), UV(0.0f, 1.0f), Color::RED),	// left  - top		- back
-	Vertex(Vector4f(0.5f, 0.5f, 0.5f), UV(1.0f, 1.0f), Color::MAGENTA),	// right - top		- back
-	Vertex(Vector4f(0.5f, 0.5f, -0.5f), UV(1.0f, 1.0f), Color::BLUE), 	// left  - top		- front
-	Vertex(Vector4f(-0.5f, 0.5f, -0.5f), UV(0.0f, 1.0f), Color::BLACK)	// right - top		- front
-};
-ATLAS::Polygon polys[]
-{
-	ATLAS::Polygon(0, 1, 4),	//front
-	ATLAS::Polygon(4, 1, 5),	//front
-	ATLAS::Polygon(1, 2, 5),	//bottom
-	ATLAS::Polygon(2, 6, 5),	//bottom
-	ATLAS::Polygon(2, 3, 6),	//back
-	ATLAS::Polygon(3, 7, 6),	//back
-	ATLAS::Polygon(3, 0, 7),	//top
-	ATLAS::Polygon(0, 4, 7),	//top
-	ATLAS::Polygon(4, 5, 7),	//right
-	ATLAS::Polygon(5, 6, 7),	//right
-	ATLAS::Polygon(3, 2, 0),	//left
-	ATLAS::Polygon(2, 1, 0)	//left
-};
+	const real32 one_over_16 = 1.0f / 16.0f;
+	render_context->SetFlag(CULL_FACES, false);
+	render_context->SetFlag(DEPTH_TEST, false);
+	render_context->SetCurrentTexture(font);
 
-Texture cubetexture("texture.bmp");
-Texture spaceshiptexture("spaceshiptexture.bmp");
-Model spaceship("spaceship.3DS", &spaceshiptexture);
-Model cube(verts, 8, polys, 12, &cubetexture);
-void DrawModel(RenderContext *render_context, Model *model)
+	size /= 360;
+	uint32 length = strlen(str);
+	Vertex vertices[4];
+	uint32 k = 0;
+
+	//Matrix4f S = ScaleMatrix(0.25f, 0.25f, 1.0f);
+	//Matrix4f P = OrthograohicMatrix((real32)win32_window.fb_width / (real32)win32_window.fb_height,
+		//70.0f, 0.1f, 1000.0f);
+
+	for (uint32 i = 0; i < length; ++i) {
+		if (str[i] == '\n') {
+			y -= size;
+			k = 0;
+			continue;
+		}
+
+		uint32 j = 0;
+		int32 ch = str[i];
+		real32 xPos = (real32)(ch % 16) * one_over_16;
+		real32 yPos = (real32)(ch / 16) * one_over_16;
+
+
+		// bottom - left
+		vertices[j].pos.x = x + (size * 0.56f) * k;
+		vertices[j].pos.y = y - size;
+		vertices[j].uv.u = xPos;
+		vertices[j].uv.v = 1.0f - yPos - one_over_16;
+		vertices[j].color = color;
+		j++;
+
+		// bottom - right
+		vertices[j].pos.x = x + (size * 0.56f) * (k + 1);
+		vertices[j].pos.y = y - size;
+		vertices[j].uv.u = xPos + one_over_16;
+		vertices[j].uv.v = 1.0f - yPos - one_over_16;
+		vertices[j].color = color;
+		j++;
+
+		// top - left
+		vertices[j].pos.x = x + (size * 0.56f) * k;
+		vertices[j].pos.y = y;
+		vertices[j].uv.u = xPos;
+		vertices[j].uv.v = 1.0f - yPos - 0.001f;
+		vertices[j].color = color;
+		j++;
+
+		// top - right
+		vertices[j].pos.x = x + (size * 0.56f) * (k + 1);
+		vertices[j].pos.y = y;
+		vertices[j].uv.u = xPos + one_over_16;
+		vertices[j].uv.v = 1.0f - yPos - 0.001f;
+		vertices[j].color = color;
+		k++;
+
+		//vertices[0].pos *= P * S;
+		//vertices[1].pos *= P * S;
+		//vertices[2].pos *= P * S;
+		//vertices[3].pos *= P * S;
+
+		render_context->DrawTriangle(vertices[0], vertices[1], vertices[2]);
+		render_context->DrawTriangle(vertices[2], vertices[1], vertices[3]);
+	}
+
+	render_context->SetFlag(CULL_FACES, CULL_FACES_ON);
+	render_context->SetFlag(DEPTH_TEST, DEPTH_TEST_ON);
+}
+void DrawModel(RenderContext *render_context, Model *model, Matrix4f MVP)
 {
 	for (uint32 p = 0; p < model->m_NumPolygons; ++p) {
 		Vertex v1 = model->m_Vertices[model->m_Polygons[p].v1];
 		Vertex v2 = model->m_Vertices[model->m_Polygons[p].v2];
 		Vertex v3 = model->m_Vertices[model->m_Polygons[p].v3];
 
-		v1.pos *= model->m_TransformationMatrix;
-		v2.pos *= model->m_TransformationMatrix;
-		v3.pos *= model->m_TransformationMatrix;
+		v1.pos *= MVP;
+		v2.pos *= MVP;
+		v3.pos *= MVP;
 
 		render_context->SetCurrentTexture(model->m_Texture);
-		render_context->DrawTriangle(v1, v2, v3);
+		render_context->DrawTriangle(v1, v2, v3, DRAW_STYLE);
 	}
 }
 
@@ -225,13 +329,11 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		win32_window.fb_height,
 		win32_window.fb_bpp);
 	rc.SetClearColor(Color(0.1f, 0.2f, 0.3f));
-	rc.SetFlag(CULL_FACES, true);
-
-	Matrix4f P = PerspectiveMatrix(
-		(real32)win32_window.fb_width / (real32)win32_window.fb_height,
-		70.0f, 0.1f, 1000.0f);
-
-	char str[32] = "";
+	rc.SetFlag(CULL_FACES, CULL_FACES_ON);
+	rc.SetFlag(DEPTH_TEST, DEPTH_TEST_ON);
+	cube.SetName("Cube");
+	
+	char str[256] = "";
 	LARGE_INTEGER current_time, last_time, frequency;
 	QueryPerformanceFrequency(&frequency);
 	int64 counter_frequency = frequency.QuadPart;
@@ -243,27 +345,54 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		real64 delta_time = ((1000.0f * (real64)elapsed_time) / (real64)counter_frequency);
 		last_time = current_time;
 
-		sprintf_s(str, 32, "ms: %.2f\n", delta_time / 1000.0f);
-		OutputDebugStringA(str);
-
-		PERSIST real32 rotY = 0.0f;
+		PERSIST real32 rotX = 0.0f, rotY = 0.0f, rotZ = 0.0f;
 		rotY += (real32)delta_time / 10.0f;
+		if (fabs(rotX) > 620.0f)
+			rotX = 0.0f;
+		if (fabs(rotY) > 620.0f)
+			rotY = 0.0f;
+		if (fabs(rotZ) > 620.0f)
+			rotZ = 0.0f;
 
-		Matrix4f t = TranslationMatrix(0.0f, 0.0f, -2.0f);
-		Matrix4f r = RotationMatrix(0.0f, rotY, 0.0f);
-		Matrix4f MV = t * r;
-		Matrix4f MVP = P * MV;
-		cube.m_TransformationMatrix = MVP;
+		char *draw_style;
+		if (DRAW_STYLE == DRAW_TRIANGLES)
+			draw_style = "Triangles";
+		if (DRAW_STYLE == DRAW_LINES)
+			draw_style = "Lines";
+		if (DRAW_STYLE == DRAW_POINTS)
+			draw_style = "Points";
+		char *blend_mode = GetBlendModeName(BLEND_MODE);
+		rc.SetBlendMode(BLEND_MODE);
 
-		t = TranslationMatrix(200.0f, 0.0f, -200.0f);
-		r = RotationMatrix(rotY, rotY, rotY);
-		MV = t * r;
-		MVP = P * MV;
-		spaceship.m_TransformationMatrix = MVP;
-				
+		Matrix4f P = PerspectiveMatrix((real32)win32_window.fb_width / (real32)win32_window.fb_height,
+			70.0f, 0.1f, 1000.0f);
+		Matrix4f t = TranslationMatrix(0.0f, 0.0f, z_position);
+		Matrix4f r = RotationMatrix(rotX, rotY, rotZ);
+		model->m_TransformationMatrix = t * r;
+		Matrix4f MVP = P * model->m_TransformationMatrix;
+		
 		rc.Clear(FRAME_BUFFER | DEPTH_BUFFER);
-			DrawModel(&rc, &cube);
-			DrawModel(&rc, &spaceship);
+			DrawModel(&rc, model, MVP);
+			sprintf_s(str, 256,
+				"ms: %.2f\n"
+				"[F8]\nCull Faces: %s\n"
+				"[F7]\nDepth Test: %s\n"
+				"[F4][F5][F6]\nDraw Style: %s\n"
+				"[F3]\nBlend Mode: %s\n"
+				"[F1][F2]\nModel: %s\n"
+				"Triangles: %i\n"
+				"Pos: [%+.2f][%+.2f][%+.2f]\n"
+				"Rot: [%+.2f][%+.2f][%+.2f]\n",
+				delta_time / 1000.0f,
+				rc.GetFlag(CULL_FACES) != 0 ? "true" : "false",
+				rc.GetFlag(DEPTH_TEST) != 0 ? "true" : "false",
+				draw_style,
+				blend_mode,
+				model->GetName(),
+				model->m_NumPolygons,
+				t.a2[0][3], t.a2[1][3], t.a2[2][3],
+				rotX, rotY, rotZ);
+			DrawString(&rc, str, &font, 16.0f, Color::RED);// , -0.12f, 0.05f);
 		Win32::SwapBuffers(&win32_window);
 	}
 

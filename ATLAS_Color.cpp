@@ -59,6 +59,98 @@ namespace ATLAS
 		return bottom += top;
 	}
 
+	char *GetBlendModeName(BlendMode blend_mode)
+	{
+		char *result;
+
+		switch (blend_mode) {
+		default:
+		case BLEND_NORMAL:
+			result = "BLEND_NORMAL";
+			break;
+		case BLEND_ADD:
+			result = "BLEND_ADD";
+			break;
+		case BLEND_SUBTRACT:
+			result = "BLEND_SUBTRACT";
+			break;
+		case BLEND_MULTIPLY:
+			result = "BLEND_MULTIPLY";
+			break;
+		case BLEND_DIVIDE:
+			result = "BLEND_DIVIDE";
+			break;
+		case BLEND_SCREEN:
+			result = "BLEND_SCREEN";
+			break;
+		case BLEND_OVERLAY:
+			result = "BLEND_OVERLAY";
+			break;
+		case BLEND_COLOR_DOGE:
+			result = "BLEND_COLOR_DOGE";
+			break;
+		case BLEND_COLOR_BURN:
+			result = "BLEND_COLOR_BURN";
+			break;
+		case BLEND_DIFFERENCE:
+			result = "BLEND_DIFFERENCE";
+			break;
+		case BLEND_DARKEN:
+			result = "BLEND_DARKEN";
+			break;
+		case BLEND_LIGHTEN:
+			result = "BLEND_LIGHTEN";
+			break;
+		}
+
+		return result;
+	}
+	Color Blend(Color bottom, Color top, BlendMode blend_mode)
+	{
+		Color result;
+
+		switch (blend_mode) {
+		default:
+		case BLEND_NORMAL:
+			result = BlendNormal(bottom, top);
+			break;
+		case BLEND_ADD:
+			result = BlendAdd(bottom, top);
+			break;
+		case BLEND_SUBTRACT:
+			result = BlendSubtract(bottom, top);
+			break;
+		case BLEND_MULTIPLY:
+			result = BlendMultiply(bottom, top);
+			break;
+		case BLEND_DIVIDE:
+			result = BlendDivide(bottom, top);
+			break;
+		case BLEND_SCREEN:
+			result = BlendScreen(bottom, top);
+			break;
+		case BLEND_OVERLAY:
+			result = BlendOverlay(bottom, top);
+			break;
+		case BLEND_COLOR_DOGE:
+			result = BlendDodge(bottom, top);
+			break;
+		case BLEND_COLOR_BURN:
+			result = BlendBurn(bottom, top);
+			break;
+		case BLEND_DIFFERENCE:
+			result = BlendDifference(bottom, top);
+			break;
+		case BLEND_DARKEN:
+			result = BlendDarken(bottom, top);
+			break;
+		case BLEND_LIGHTEN:
+			result = BlendLighten(bottom, top);
+			break;
+		}
+
+		return result;
+	}
 	Color BlendNormal(Color bottom, Color top)
 	{
 		return top;
@@ -74,6 +166,10 @@ namespace ATLAS
 	Color BlendMultiply(Color bottom, Color top)
 	{
 		return bottom * top;
+	}
+	Color BlendDivide(Color bottom, Color top)
+	{
+		return bottom / top;
 	}
 	Color BlendScreen(Color bottom, Color top)
 	{
