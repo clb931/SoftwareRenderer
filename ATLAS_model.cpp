@@ -10,9 +10,9 @@ ATLAS::Polygon::Polygon(uint32 v1, uint32 v2, uint32 v3)
 	this->v2 = v2;
 	this->v3 = v3;
 }
+
 void CalculateNormals(Model *model)
 {
-	model->m_Normals = new Vector4f[model->m_NumVertices];
 	uint32 *edges = new uint32[model->m_NumVertices];
 
 	for (uint32 i = 0; i < model->m_NumPolygons; ++i) {
@@ -26,17 +26,18 @@ void CalculateNormals(Model *model)
 		edges[model->m_Polygons[i].v2]++;
 		edges[model->m_Polygons[i].v3]++;
 
-		model->m_Normals[model->m_Polygons[i].v1] += N;
-		model->m_Normals[model->m_Polygons[i].v2] += N;
-		model->m_Normals[model->m_Polygons[i].v3] += N;
+		model->m_Vertices[model->m_Polygons[i].v1].norm += N;
+		model->m_Vertices[model->m_Polygons[i].v2].norm += N;
+		model->m_Vertices[model->m_Polygons[i].v3].norm += N;
 	}
 
 	for (uint32 i = 0; i < model->m_NumVertices; ++i)
 		if (edges > 0)
-			model->m_Normals[i] /= (real32)edges[i];
+			model->m_Vertices[i].norm /= (real32)edges[i];
 
 	delete[] edges;
 }
+
 Model::Model(const char *file_path, Texture *texture)
 {
 	char str[256] = "";
@@ -147,7 +148,7 @@ Model::Model(const char *file_path, Texture *texture)
 }
 Model::Model(Vertex *vertices, uint32 num_vertices,
 	ATLAS::Polygon *polygons, uint32 num_polygons,
-	Texture *texture, Vector4f *normals)
+	Texture *texture)
 {
 	m_TransformationMatrix = IdentityMatrix;
 	m_NumVertices = num_vertices;
@@ -155,25 +156,18 @@ Model::Model(Vertex *vertices, uint32 num_vertices,
 	m_NumPolygons = num_polygons;
 	m_Polygons = new ATLAS::Polygon[num_polygons];
 	m_Texture = texture;
-	m_Normals = new Vector4f[m_NumVertices];
 
 	for (uint32 i = 0; i < max(m_NumPolygons, m_NumVertices); ++i) {
-		if (i < m_NumVertices) {
+		if (i < m_NumVertices)
 			m_Vertices[i] = vertices[i];
-
-			if (normals)
-				m_Normals[i] = normals[i];
-		}
 		if (i < m_NumPolygons)
 			m_Polygons[i] = polygons[i];
 	}
-
-	if (!normals)
-		CalculateNormals(this);
+	
+	CalculateNormals(this);
 }
 Model::~Model()
 {
 	delete[] m_Vertices;
 	delete[] m_Polygons;
-	delete[] m_Normals;
 }

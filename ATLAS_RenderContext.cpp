@@ -33,65 +33,22 @@ namespace ATLAS
 
 	void RenderContext::DrawTriangle(Vertex v1, Vertex v2, Vertex v3)
 	{
-		v1.pos = m_ScreenTransform * v1.pos;
-		v2.pos = m_ScreenTransform * v2.pos;
-		v3.pos = m_ScreenTransform * v3.pos;
-		v1.PerspectiveDivide();
-		v2.PerspectiveDivide();
-		v3.PerspectiveDivide();
+		std::vector<Vertex> vertices;
+		std::vector<Vertex> temp;
 
-		if (m_Flags & CULL_FACES)
-			if (Normalize(v1.pos, v2.pos, v3.pos).z <= 0)
-				return;
+		vertices.push_back(v1);
+		vertices.push_back(v2);
+		vertices.push_back(v3);
 
-		Vertex pVertices[3] = { v1, v2, v3 };
-		Vertex temp;
+		if (ClipPolygonAxis(&vertices, &temp, 0) &&
+			ClipPolygonAxis(&vertices, &temp, 1) &&
+			ClipPolygonAxis(&vertices, &temp, 2)) {
+			Vertex *start = &vertices.at(0);
 
-		if (pVertices[2].pos.y < pVertices[1].pos.y) {
-			temp = pVertices[2];
-			pVertices[2] = pVertices[1];
-			pVertices[1] = temp;
+			for (uint32 i = 0; i < vertices.size() - 1; ++i) {
+				FillTriangle(*start, vertices.at(i), vertices.at(i + 1));
+			}
 		}
-		if (pVertices[1].pos.y < pVertices[0].pos.y) {
-			temp = pVertices[1];
-			pVertices[1] = pVertices[0];
-			pVertices[0] = temp;
-		}
-		if (pVertices[2].pos.y < pVertices[1].pos.y) {
-			temp = pVertices[2];
-			pVertices[2] = pVertices[1];
-			pVertices[1] = temp;
-		}
-
-		Edge bot2top(pVertices[0], pVertices[2]);
-		Edge bot2mid(pVertices[0], pVertices[1]);
-		Edge mid2top(pVertices[1], pVertices[2]);
-		ScanTriangle(&bot2top, &bot2mid);
-		ScanTriangle(&bot2top, &mid2top);
-
-		//Edge *pLeft, *pRight;
-		//pLeft = bot2mid.x < bot2top.x ? &bot2mid : &bot2top;
-		//pRight = bot2mid.x > bot2top.x ? &bot2mid : &bot2top;
-		//int32 y_min = max(0, bot2mid.y_min);
-		//int32 y_max = min(bot2mid.y_max, m_Height - 1);
-		//if (bot2mid.y_diff && bot2top.y_diff) {
-		//	for (int32 y = y_min; y < y_max; ++y) {
-		//		DrawScanLine(pLeft, pRight, y);
-		//		bot2mid.Step();
-		//		bot2top.Step();
-		//	}
-		//}
-		//pLeft = mid2top.x < bot2top.x ? &mid2top : &bot2top;
-		//pRight = mid2top.x > bot2top.x ? &mid2top : &bot2top;
-		//y_min = max(0, mid2top.y_min);
-		//y_max = min(mid2top.y_max, m_Height - 1);
-		//if (mid2top.y_diff && bot2top.y_diff) {
-		//	for (int32 y = y_min; y < y_max; ++y) {
-		//		DrawScanLine(pLeft, pRight, y);
-		//		mid2top.Step();
-		//		bot2top.Step();
-		//	}
-		//}
 	}
 	void RenderContext::DrawLine(Vertex v1, Vertex v2)
 	{
@@ -159,9 +116,6 @@ namespace ATLAS
 			return;
 		}
 
-		//real32 *depth = (real32 *)m_DepthBuffer + x + (y * m_Width);
-		//Color dc(*depth, *depth, *depth);
-
 		uint32 *pixel = (uint32 *)(m_FrameBuffer) + x + (y * m_Width);
 		*pixel = color.toColor32();
 	}
@@ -178,6 +132,108 @@ namespace ATLAS
 		}
 	}
 
+	void RenderContext::FillTriangle(Vertex v1, Vertex v2, Vertex v3)
+	{
+		v1.pos = m_ScreenTransform * v1.pos;
+		v2.pos = m_ScreenTransform * v2.pos;
+		v3.pos = m_ScreenTransform * v3.pos;
+		v1.PerspectiveDivide();
+		v2.PerspectiveDivide();
+		v3.PerspectiveDivide();
+
+		if (m_Flags & CULL_FACES)
+			if (Normalize(v1.pos, v2.pos, v3.pos).z <= 0)
+				return;
+
+		Vertex pVertices[3] = { v1, v2, v3 };
+		Vertex temp;
+
+		if (pVertices[2].pos.y < pVertices[1].pos.y) {
+			temp = pVertices[2];
+			pVertices[2] = pVertices[1];
+			pVertices[1] = temp;
+		}
+		if (pVertices[1].pos.y < pVertices[0].pos.y) {
+			temp = pVertices[1];
+			pVertices[1] = pVertices[0];
+			pVertices[0] = temp;
+		}
+		if (pVertices[2].pos.y < pVertices[1].pos.y) {
+			temp = pVertices[2];
+			pVertices[2] = pVertices[1];
+			pVertices[1] = temp;
+		}
+
+		Edge bot2top(pVertices[0], pVertices[2]);
+		Edge bot2mid(pVertices[0], pVertices[1]);
+		Edge mid2top(pVertices[1], pVertices[2]);
+		ScanTriangle(&bot2top, &bot2mid);
+		ScanTriangle(&bot2top, &mid2top);
+
+		//Edge *pLeft, *pRight;
+		//pLeft = bot2mid.x < bot2top.x ? &bot2mid : &bot2top;
+		//pRight = bot2mid.x > bot2top.x ? &bot2mid : &bot2top;
+		//int32 y_min = max(0, bot2mid.y_min);
+		//int32 y_max = min(bot2mid.y_max, m_Height - 1);
+		//if (bot2mid.y_diff && bot2top.y_diff) {
+		//	for (int32 y = y_min; y < y_max; ++y) {
+		//		DrawScanLine(pLeft, pRight, y);
+		//		bot2mid.Step();
+		//		bot2top.Step();
+		//	}
+		//}
+		//pLeft = mid2top.x < bot2top.x ? &mid2top : &bot2top;
+		//pRight = mid2top.x > bot2top.x ? &mid2top : &bot2top;
+		//y_min = max(0, mid2top.y_min);
+		//y_max = min(mid2top.y_max, m_Height - 1);
+		//if (mid2top.y_diff && bot2top.y_diff) {
+		//	for (int32 y = y_min; y < y_max; ++y) {
+		//		DrawScanLine(pLeft, pRight, y);
+		//		mid2top.Step();
+		//		bot2top.Step();
+		//	}
+		//}
+	}
+	bool32 RenderContext::ClipPolygonAxis(std::vector<Vertex> *vertices,
+		std::vector<Vertex> *temp, real32 component_index)
+	{
+		ClipPolygonComponent(vertices, component_index, 1.0f, temp);
+		vertices->clear();
+
+		if (temp->empty())
+			return false;
+
+		ClipPolygonComponent(temp, component_index, -1.0f, vertices);
+		temp->clear();
+
+		return !vertices->empty();
+	}
+	void RenderContext::ClipPolygonComponent(std::vector<Vertex> *in_vertices, int32 component_index,
+		real32 component_factor, std::vector<Vertex> *out_vertices)
+	{
+		Vertex *pPrevVertex = &in_vertices->back();
+		real32 prevComponent = pPrevVertex->pos.a[component_index] * component_factor;
+		bool32 prevInside = prevComponent <= pPrevVertex->pos.w;
+
+		for (auto& vertex : *in_vertices) {
+			real32 component = vertex.pos.a[component_index] * component_factor;
+			bool32 inside = component <= vertex.pos.w;
+
+			if (inside ^ prevInside) {
+				real32 lerp_amnt = (pPrevVertex->pos.w - prevComponent) /
+					((pPrevVertex->pos.w - prevComponent) - (vertex.pos.w - component));
+
+				out_vertices->push_back(pPrevVertex->Lerp(vertex, lerp_amnt));
+			}
+
+			if (inside)
+				out_vertices->push_back(vertex);
+
+			pPrevVertex		= &vertex;
+			prevComponent	= component;
+			prevInside		= inside;
+		}
+	}
 	void RenderContext::ScanTriangle(Edge *pLongEdge, Edge *pShortEdge)
 	{
 		Edge *pLeft, *pRight;
@@ -194,12 +250,12 @@ namespace ATLAS
 			return;
 
 		for (uint32 y = y_min; y < y_max; ++y) {
-			DrawScanLine(pLeft, pRight, y);
+			FillScanLine(pLeft, pRight, y);
 			pRight->Step();
 			pLeft->Step();
 		}
 	}
-	void RenderContext::DrawScanLine(Edge *pLeft, Edge *pRight, uint32 y)
+	void RenderContext::FillScanLine(Edge *pLeft, Edge *pRight, uint32 y)
 	{
 		uint32 x_min = (uint32)ceil(pLeft->x);
 		uint32 x_max = (uint32)ceil(pRight->x);

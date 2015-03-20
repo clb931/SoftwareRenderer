@@ -165,16 +165,16 @@ namespace ATLAS
 	}
 	Matrix4f PerspectiveMatrix(real32 aspect_ratio, real32 FOV, real32 z_near, real32 z_far)
 	{
-		real32 tan_half_fov = tanf(ToRadians(0.5f * FOV));
-		real32 z_range = z_near = z_far;
+		real32 tan_half_fov = tanf(ToRadians(FOV) * 0.5f);
+		real32 z_range = z_near - z_far;
 
 
 		Matrix4f Projection =
 		{
 			1.0f / (tan_half_fov * aspect_ratio), 0.0f, 0.0f, 0.0f,
 			0.0f, 1.0f / tan_half_fov, 0.0f, 0.0f,
-			0.0f, 0.0f, (-z_near - z_far) / z_range, 2.0f * z_far * z_near / z_range,
-			0.0f, 0.0f, 1.0f, 0.0f
+			0.0f, 0.0f, (z_near + z_far) / z_range, (2.0f * z_far * z_near) / z_range,
+			0.0f, 0.0f, -1.0f, 0.0f
 		};
 
 		return Projection;
@@ -208,8 +208,8 @@ namespace ATLAS
 
 		const Matrix4f mat =
 		{
-			-half_width, 0.0f, 0.0f, half_width,
-			0.0f, -half_height, 0.0f, half_height,
+			half_width, 0.0f, 0.0f, half_width - 0.5f,
+			0.0f, half_height, 0.0f, half_height - 0.5f,
 			0.0f, 0.0f, half_zminus, half_zplus,
 			0.0f, 0.0f, 0.0f, 1.0f
 		};

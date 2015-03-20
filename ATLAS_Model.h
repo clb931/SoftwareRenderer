@@ -19,7 +19,7 @@ namespace ATLAS
 		Model(const char *file_path, Texture *texture = nullptr);
 		Model(Vertex *vertices, uint32 num_vertices,
 			Polygon *polygons, uint32 num_polygons,
-			Texture *texture = nullptr, Vector4f *normals = nullptr);
+			Texture *texture = nullptr);
 		~Model();
 
 		Matrix4f	m_TransformationMatrix;
@@ -28,7 +28,6 @@ namespace ATLAS
 		uint32		m_NumPolygons;
 		Polygon		*m_Polygons;
 		Texture		*m_Texture;
-		Vector4f	*m_Normals;
 	};
 }
 

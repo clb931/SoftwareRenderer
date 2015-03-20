@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string>
 #include <stdio.h>
+#include <vector>
 
 using std::string;
 
@@ -26,8 +27,9 @@ typedef double		real64;
 #define ToRadians(a) ((a) * (PI / 180.0f))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
-#define clamp(a, b, c) (min(max((a), (b)), (c)))
-#define lerp(a, b, c) ((a) * (1 - (c)) + (b) * (c));
+//#define clamp(a, b, c) (clip((a) / (c) + (b), b, c))
+#define clip(a, b, c) (min(max((a), (b)), (c)))
+#define lerp(a, b, c) ((a) * (1 - (c)) + (b) * (c))
 
 #include "ATLAS_Vector.h"
 #include "ATLAS_Matrix.h"

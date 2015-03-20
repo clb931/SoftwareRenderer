@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ATLAS_Color.cpp" />
+    <ClCompile Include="ATLAS_Font.cpp" />
     <ClCompile Include="ATLAS_model.cpp" />
     <ClCompile Include="ATLAS_RenderContext.cpp" />
     <ClCompile Include="ATLAS_Matrix.cpp" />
@@ -90,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ATLAS_Color.h" />
+    <ClInclude Include="ATLAS_Font.h" />
     <ClInclude Include="ATLAS_RenderContext.h" />
     <ClInclude Include="ATLAS_Matrix.h" />
     <ClInclude Include="ATLAS_Stdafx.h" />

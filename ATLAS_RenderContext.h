@@ -56,8 +56,13 @@ namespace ATLAS
 		void SetFlag(AtlasFlag flag, bool32 value);
 
 	private:
+		void FillTriangle(Vertex v1, Vertex v2, Vertex v3);
+		bool32 ClipPolygonAxis(std::vector<Vertex> *vertices,
+			std::vector<Vertex> *temp, real32 factor);
+		void ClipPolygonComponent(std::vector<Vertex> *in_vertices, int32 component_index,
+			real32 component_factor, std::vector<Vertex> *out_vertices);
 		void ScanTriangle(Edge *pLongEdge, Edge *pRightEdge);
-		void DrawScanLine(Edge *left, Edge *right, uint32 y);
+		void FillScanLine(Edge *left, Edge *right, uint32 y);
 		Color GetTexel(real32 x, real32 y);
 
 		void			*m_FrameBuffer;
