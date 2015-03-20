@@ -210,7 +210,7 @@ namespace ATLAS
 		{
 			-half_width, 0.0f, 0.0f, half_width,
 			0.0f, -half_height, 0.0f, half_height,
-			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, half_zminus, half_zplus,
 			0.0f, 0.0f, 0.0f, 1.0f
 		};
 
