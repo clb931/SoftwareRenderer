@@ -336,24 +336,25 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 	cube.SetName("Cube");
 	
 	char str[256] = "";
-	LARGE_INTEGER current_time, last_time, frequency;
+	LARGE_INTEGER current_time, last_time, elapsed_time, frequency;
 	QueryPerformanceFrequency(&frequency);
-	int64 counter_frequency = frequency.QuadPart;
 	QueryPerformanceCounter(&last_time);
 
 	while (Win32::HandleMessages()) {
 		QueryPerformanceCounter(&current_time);
-		int64 elapsed_time = current_time.QuadPart - last_time.QuadPart;
-		real64 delta_time = ((1000.0f * (real64)elapsed_time) / (real64)counter_frequency);
+		elapsed_time.QuadPart = current_time.QuadPart - last_time.QuadPart;
+		elapsed_time.QuadPart *= 1000000;
+		elapsed_time.QuadPart /= frequency.QuadPart;
+		real64 delta_time = elapsed_time.QuadPart / 1000.0f;
 		last_time = current_time;
 
-		PERSIST real32 rotX = 0.0f, rotY = 0.0f, rotZ = 0.0f;
-		rotY += (real32)delta_time / 10.0f;
-		if (fabs(rotX) > 620.0f)
+		PERSIST real32 rotX = 0.0f, rotY = 300.0f, rotZ = 0.0f;
+		rotY += (real32)delta_time / 50.0f;
+		if (fabs(rotX) > 360.0f)
 			rotX = 0.0f;
-		if (fabs(rotY) > 620.0f)
+		if (fabs(rotY) > 360.0f)
 			rotY = 0.0f;
-		if (fabs(rotZ) > 620.0f)
+		if (fabs(rotZ) > 360.0f)
 			rotZ = 0.0f;
 
 		char *draw_style;
@@ -369,7 +370,8 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		Matrix4f P = PerspectiveMatrix((real32)win32_window.fb_width / (real32)win32_window.fb_height,
 			70.0f, 0.1f, 1000.0f);
 		Matrix4f t = TranslationMatrix(0.0f, 0.0f, z_position);
-		Matrix4f r = RotationMatrix(rotX, rotY, rotZ);
+		Matrix4f r = RotationMatrix(0.0f, rotY, rotZ);
+		r = r * RotationMatrix(-90.0f, 0.0f, 0.0f);
 		model->m_TransformationMatrix = t * r;
 		Matrix4f MVP = P * model->m_TransformationMatrix;
 		
@@ -385,7 +387,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 				"Triangles: %i\n"
 				"Pos: [%+.2f][%+.2f][%+.2f]\n"
 				"Rot: [%+.2f][%+.2f][%+.2f]\n",
-				delta_time / 1000.0f,
+				delta_time,
 				rc.GetFlag(CULL_FACES) != 0 ? "true" : "false",
 				rc.GetFlag(DEPTH_TEST) != 0 ? "true" : "false",
 				draw_style,

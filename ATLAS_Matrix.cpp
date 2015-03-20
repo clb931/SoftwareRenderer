@@ -118,7 +118,7 @@ namespace ATLAS
 		
 		if (x)
 		{
-			x /= 100.0f;
+			x /= 57.5f;
 			cos_theta = cosf(x);
 			sin_theta = sinf(x);
 
@@ -133,7 +133,7 @@ namespace ATLAS
 
 		if (y)
 		{
-			y /= 100.0f;
+			y /= 57.5f;
 			cos_theta = cosf(y);
 			sin_theta = sinf(y);
 
@@ -148,7 +148,7 @@ namespace ATLAS
 
 		if (z)
 		{
-			z /= 100.0f;
+			z /= 57.5f;
 			cos_theta = cosf(z);
 			sin_theta = sinf(z);
 
