@@ -179,21 +179,15 @@ namespace ATLAS
 
 		return Projection;
 	}
-	Matrix4f OrthograohicMatrix(real32 aspect_ratio, real32 FOV, real32 z_near, real32 z_far)
+	Matrix4f OrthograohicMatrix(real32 right, real32 left, real32 bottom, real32 top, real32 z_near, real32 z_far)
 	{
-		real32 tan_half_fov = tanf(ToRadians(0.5f * FOV));
-		real32 height = z_near * tan_half_fov;
-		real32 width = height * aspect_ratio;
-		real32 left = -width, right = width;
-		real32 bottom = -height, top = height;
-		real32 depth = z_far - z_near;
-
+		
 		Matrix4f Projection =
 		{
-			2.0f / width, 0.0f, 0.0f, -(right + left) / width,
-			0.0f, 2.0f / height, 0.0f, -(top + bottom) / height,
-			0.0f, 0.0f, -2.0f / depth, -(z_far + z_near) / depth,
-			0.0f, 0.0f, 0.0f, 1.0f
+			-2.0f / (right - left), 0.0f, 0.0f, 0.0f,
+			0.0f, 2.0f / (top - bottom), 0.0f, 0.0f,
+			0.0f, 0.0f, -2.0f / (z_far - z_near), 0.0f,
+			(right + left) / (right - left), (top + bottom) / (top - bottom), (z_far + z_near) / (z_far - z_near), 1.0f
 		};
 
 		return Projection;

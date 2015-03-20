@@ -231,19 +231,20 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 void DrawString(RenderContext *render_context, const char *str, Texture *font,
 	real32 size = 24.0f, Color color = Color::WHITE, real32 x = -1.0f, real32 y = 1.0f)
 {
+	size /= 100.0f;
 	const real32 one_over_16 = 1.0f / 16.0f;
 	render_context->SetFlag(CULL_FACES, false);
 	render_context->SetFlag(DEPTH_TEST, false);
 	render_context->SetCurrentTexture(font);
+	render_context->SetBlendMode(BLEND_DARKEN);
 
-	size /= 360;
 	uint32 length = strlen(str);
 	Vertex vertices[4];
 	uint32 k = 0;
 
-	//Matrix4f S = ScaleMatrix(0.25f, 0.25f, 1.0f);
-	//Matrix4f P = OrthograohicMatrix((real32)win32_window.fb_width / (real32)win32_window.fb_height,
-		//70.0f, 0.1f, 1000.0f);
+	real32 half_width = (real32)win32_window.fb_width / 2.0f;
+	real32 half_height = (real32)win32_window.fb_height / 2.0f;
+	Matrix4f P = OrthograohicMatrix(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 1000.0f);
 
 	for (uint32 i = 0; i < length; ++i) {
 		if (str[i] == '\n') {
@@ -259,7 +260,7 @@ void DrawString(RenderContext *render_context, const char *str, Texture *font,
 
 
 		// bottom - left
-		vertices[j].pos.x = x + (size * 0.56f) * k;
+		vertices[j].pos.x = x + (size * 0.4f) * k;
 		vertices[j].pos.y = y - size;
 		vertices[j].uv.u = xPos;
 		vertices[j].uv.v = 1.0f - yPos - one_over_16;
@@ -267,7 +268,7 @@ void DrawString(RenderContext *render_context, const char *str, Texture *font,
 		j++;
 
 		// bottom - right
-		vertices[j].pos.x = x + (size * 0.56f) * (k + 1);
+		vertices[j].pos.x = x + (size * 0.4f) * (k + 1);
 		vertices[j].pos.y = y - size;
 		vertices[j].uv.u = xPos + one_over_16;
 		vertices[j].uv.v = 1.0f - yPos - one_over_16;
@@ -275,7 +276,7 @@ void DrawString(RenderContext *render_context, const char *str, Texture *font,
 		j++;
 
 		// top - left
-		vertices[j].pos.x = x + (size * 0.56f) * k;
+		vertices[j].pos.x = x + (size * 0.4f) * k;
 		vertices[j].pos.y = y;
 		vertices[j].uv.u = xPos;
 		vertices[j].uv.v = 1.0f - yPos - 0.001f;
@@ -283,17 +284,17 @@ void DrawString(RenderContext *render_context, const char *str, Texture *font,
 		j++;
 
 		// top - right
-		vertices[j].pos.x = x + (size * 0.56f) * (k + 1);
+		vertices[j].pos.x = x + (size * 0.4f) * (k + 1);
 		vertices[j].pos.y = y;
 		vertices[j].uv.u = xPos + one_over_16;
 		vertices[j].uv.v = 1.0f - yPos - 0.001f;
 		vertices[j].color = color;
 		k++;
 
-		//vertices[0].pos *= P * S;
-		//vertices[1].pos *= P * S;
-		//vertices[2].pos *= P * S;
-		//vertices[3].pos *= P * S;
+		vertices[0].pos *= P;
+		vertices[1].pos *= P;
+		vertices[2].pos *= P;
+		vertices[3].pos *= P;
 
 		render_context->DrawTriangle(vertices[0], vertices[1], vertices[2]);
 		render_context->DrawTriangle(vertices[2], vertices[1], vertices[3]);
@@ -301,6 +302,7 @@ void DrawString(RenderContext *render_context, const char *str, Texture *font,
 
 	render_context->SetFlag(CULL_FACES, CULL_FACES_ON);
 	render_context->SetFlag(DEPTH_TEST, DEPTH_TEST_ON);
+	render_context->SetBlendMode(BLEND_MODE);
 }
 void DrawModel(RenderContext *render_context, Model *model, Matrix4f MVP)
 {
@@ -392,7 +394,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 				model->m_NumPolygons,
 				t.a2[0][3], t.a2[1][3], t.a2[2][3],
 				rotX, rotY, rotZ);
-			DrawString(&rc, str, &font, 16.0f, Color::RED);// , -0.12f, 0.05f);
+			DrawString(&rc, str, &font, 6.0f, Color::RED);
 		Win32::SwapBuffers(&win32_window);
 	}
 
