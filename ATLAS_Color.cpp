@@ -216,10 +216,10 @@ namespace ATLAS
 		return out;
 	}
 
-	Color LerpColor(Color min, Color max, real32 step)
+	Color LerpColor(Color min_color, Color max_color, real32 step)
 	{
-		//hsv ca = rgb2hsv(min);
-		//hsv cb = rgb2hsv(min);
+		//hsv ca = rgb2hsv(min_color);
+		//hsv cb = rgb2hsv(max_color);
 		//hsv result;
 
 		//result.h = ca.h * (1 - step) + cb.h * step;
@@ -228,7 +228,7 @@ namespace ATLAS
 
 		//return hsv2rgb(result);
 
-		return (min * (1 - step) + max * step);
+		return lerp(min_color, max_color, step);
 	}
 
 	const Color Color::RED = Color(1.0f, 0.0f, 0.0f, 0.1f);

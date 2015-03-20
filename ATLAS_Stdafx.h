@@ -27,6 +27,7 @@ typedef double		real64;
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define clamp(a, b, c) (min(max((a), (b)), (c)))
+#define lerp(a, b, c) ((a) * (1 - (c)) + (b) * (c));
 
 #include "ATLAS_Vector.h"
 #include "ATLAS_Matrix.h"

@@ -243,13 +243,13 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		real64 delta_time = ((1000.0f * (real64)elapsed_time) / (real64)counter_frequency);
 		last_time = current_time;
 
-		sprintf_s(str, 32, "ms: %.2f\n", delta_time / 1000.0);
+		sprintf_s(str, 32, "ms: %.2f\n", delta_time / 1000.0f);
 		OutputDebugStringA(str);
 
 		PERSIST real32 rotY = 0.0f;
 		rotY += (real32)delta_time / 10.0f;
 
-		Matrix4f t = TranslationMatrix(0.0f, 0.0f, -20.0f);
+		Matrix4f t = TranslationMatrix(0.0f, 0.0f, -2.0f);
 		Matrix4f r = RotationMatrix(0.0f, rotY, 0.0f);
 		Matrix4f MV = t * r;
 		Matrix4f MVP = P * MV;

@@ -63,6 +63,7 @@ namespace ATLAS
 		x /= rhs;
 		y /= rhs;
 		z /= rhs;
+		w /= rhs;
 
 		return *this;
 	}

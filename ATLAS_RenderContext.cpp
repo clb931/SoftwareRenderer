@@ -33,9 +33,12 @@ namespace ATLAS
 
 	void RenderContext::DrawTriangle(Vertex v1, Vertex v2, Vertex v3)
 	{
-		v1.pos = (m_ScreenTransform * v1.pos) / v1.pos.w;
-		v2.pos = (m_ScreenTransform * v2.pos) / v2.pos.w;
-		v3.pos = (m_ScreenTransform * v3.pos) / v3.pos.w;
+		v1.pos = m_ScreenTransform * v1.pos;
+		v2.pos = m_ScreenTransform * v2.pos;
+		v3.pos = m_ScreenTransform * v3.pos;
+		v1 /= v1.pos.w;
+		v2 /= v2.pos.w;
+		v3 /= v3.pos.w;
 
 		if (m_Flags & CULL_FACES)
 			if (Normalize(v1.pos, v2.pos, v3.pos).z <= 0)
@@ -67,24 +70,26 @@ namespace ATLAS
 
 		pLeft = bot2mid.x < bot2top.x ? &bot2mid : &bot2top;
 		pRight = bot2mid.x > bot2top.x ? &bot2mid : &bot2top;
-
 		uint32 y_min = max(0.0f, bot2mid.y_min);
 		uint32 y_max = min(bot2mid.y_max, m_Height - 1);
-		for (uint32 y = y_min; y < y_max; ++y) {
-			DrawScanLine(pLeft, pRight, y);
-			++bot2mid;
-			++bot2top;
+		if (bot2mid.y_diff && bot2top.y_diff) {
+			for (uint32 y = y_min; y < y_max; ++y) {
+				DrawScanLine(pLeft, pRight, y);
+				++bot2mid;
+				++bot2top;
+			}
 		}
 
 		pLeft = mid2top.x < bot2top.x ? &mid2top : &bot2top;
 		pRight = mid2top.x > bot2top.x ? &mid2top : &bot2top;
-
 		y_min = max(0.0f, mid2top.y_min);
-		y_max = min(mid2top.y_max, m_Height);
-		for (uint32 y = y_min; y < y_max; ++y) {
-			DrawScanLine(pLeft, pRight, y);
-			++mid2top;
-			++bot2top;
+		y_max = min(mid2top.y_max, m_Height - 1);
+		if (mid2top.y_diff && bot2top.y_diff) {
+			for (uint32 y = y_min; y < y_max; ++y) {
+				DrawScanLine(pLeft, pRight, y);
+				++mid2top;
+				++bot2top;
+			}
 		}
 	}
 	void RenderContext::DrawScanLine(Edge *pLeft, Edge *pRight, uint32 y)
@@ -94,8 +99,8 @@ namespace ATLAS
 		real32 x_prestep = x_min - pLeft->x;
 
 		real32	x_diff = x_max - x_min;
-		real32	depth_step = (pRight->z - pLeft->z) / x_diff;
-		real32	depth = pLeft->z + depth_step * x_prestep;
+		real32	depth_step = (pRight->depth - pLeft->depth) / x_diff;
+		real32	depth = pLeft->depth + depth_step * x_prestep;
 		real32	one_over_z_step = (pRight->one_over_z - pLeft->one_over_z) / x_diff;
 		real32	one_over_z = pLeft->one_over_z + one_over_z_step * x_prestep;
 		Color	color_step = (pRight->color - pLeft->color) / x_diff;
@@ -105,15 +110,14 @@ namespace ATLAS
 		real32	*pDepthBuffer = (real32 *)m_DepthBuffer + y * m_Width;
 
 		for (uint32 x = x_min; x < x_max; ++x) {
-			Color	pixel = color;
-			Color	texel = GetTexel(uv);
+			real32	z = 1.0f / one_over_z;
+			Color	pixel = color * z;
+			Color	texel = GetTexel(uv * z);
 
 			if (m_DepthBuffer) {
 				if (depth < *(pDepthBuffer + x)) {
 					*(pDepthBuffer + x) = depth;
-					DrawPixel(x, y, texel);
-				} else {
-					printf("");
+					DrawPixel(x, y, BlendNormal(pixel, texel));
 				}
 			} else {
 				DrawPixel(x, y, pixel);
@@ -190,11 +194,11 @@ namespace ATLAS
 		if (!m_CurrentTexture)
 			return Color::WHITE;
 
-		uint32 x = (uint32)(uv.u * (m_CurrentTexture->width - 1) + 0.5f);
-		uint32 y = (uint32)(uv.v * (m_CurrentTexture->height - 1) + 0.5f);
+		int32 x = (int32)(uv.u * (m_CurrentTexture->width - 1) + 0.5f);
+		int32 y = (int32)(uv.v * (m_CurrentTexture->height - 1) + 0.5f);
 		uint32 i = (x + y * m_CurrentTexture->width) * 4;
 		
-		if (i > m_CurrentTexture->width * m_CurrentTexture->height * 4.0f) {
+		if (i > m_CurrentTexture->width * m_CurrentTexture->height * 4) {
 			OutputDebugStringA("Texture coord out of range\n");
 			__debugbreak(); // need to fix this
 			return Color::WHITE;
@@ -256,19 +260,19 @@ namespace ATLAS
 
 		real32 y_prestep = y_min - bot.pos.y;
 
-		real32	y_diff = top.pos.y - bot.pos.y;
+		y_diff = top.pos.y - bot.pos.y;
 		real32	x_diff = top.pos.x - bot.pos.x;
 
 		x_step = x_diff / y_diff;
 		x = bot.pos.x + x_step * y_prestep;
 		real32 x_prestep = x - bot.pos.x;
 
-		z_step = (top.pos.z - bot.pos.z) / y_diff;
-		z = bot.pos.z + z_step * y_prestep;
+		depth_step = (top.pos.z - bot.pos.z) / y_diff;
+		depth = bot.pos.z + depth_step * y_prestep;
 
 		one_over_z_step = ((1.0f / top.pos.w) - (1.0f / bot.pos.w)) / y_diff;
 		one_over_z = (1.0f / bot.pos.w) + one_over_z_step * y_prestep;
-
+		
 		color_step = (top.color - bot.color) / y_diff;
 		color = bot.color + color_step * y_prestep;
 
@@ -278,7 +282,7 @@ namespace ATLAS
 	void Edge::operator++()
 	{
 		x += x_step;
-		z += z_step;
+		depth += depth_step;
 		color += color_step;
 		uv += uv_step;
 		one_over_z += one_over_z_step;

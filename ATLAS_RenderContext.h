@@ -30,8 +30,9 @@ namespace ATLAS
 		void operator++();
 
 		uint32	y_min, y_max;
+		real32	y_diff;
 		real32	x_step, x;
-		real32	z_step, z;
+		real32	depth_step, depth;
 		real32	one_over_z_step, one_over_z;
 		Color	color_step, color;
 		UV		uv_step, uv;
