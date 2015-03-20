@@ -159,9 +159,6 @@ namespace ATLAS
 			return;
 		}
 
-		//real32 *depth = (real32 *)m_DepthBuffer + x + (y * m_Width);
-		//Color dc(*depth, *depth, *depth);
-
 		uint32 *pixel = (uint32 *)(m_FrameBuffer) + x + (y * m_Width);
 		*pixel = color.toColor32();
 	}
@@ -174,7 +171,7 @@ namespace ATLAS
 			if (flags & FRAME_BUFFER)
 				pixel[i] = m_ClearColor;
 			if (flags & DEPTH_BUFFER)
-				depth[i] = 1.0f;
+				depth[i] = INFINITY;
 		}
 	}
 
@@ -227,6 +224,8 @@ namespace ATLAS
 			Color	pixel = color * z;
 			Color	texel = GetTexel(uv.u * z, uv.v * z);
 
+			// need to fix the depth buffer
+			// values arent between 0.0f and 1.0f
 			if (m_DepthBuffer) {
 				if (depth < *(pDepthBuffer + x)) {
 					*(pDepthBuffer + x) = depth;
@@ -252,10 +251,10 @@ namespace ATLAS
 		uint32 i = (xx + yy * m_CurrentTexture->width) * 4;
 
 		if (i > m_CurrentTexture->width * m_CurrentTexture->height * 4) {
-			OutputDebugStringA("Texture coord out of range\n");
-			//__debugbreak(); // need to fix this
-			return Color::WHITE;
-		}
+			OutputDebugStringA("Texture coord out of range\n"); // need to fix this bug...
+			//__debugbreak();									// tex coords go out of
+			return Color::WHITE;								// range when part of 
+		}														// polygon is off screen
 
 		return Color(
 			m_CurrentTexture->data[i + 0] / 255.0f,

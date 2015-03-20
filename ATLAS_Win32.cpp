@@ -250,12 +250,12 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		rotY += (real32)delta_time / 10.0f;
 
 		Matrix4f t = TranslationMatrix(0.0f, 0.0f, -2.0f);
-		Matrix4f r = RotationMatrix(0.0f, rotY, 0.0f);
+		Matrix4f r = RotationMatrix(0.0f, 0.0f, 0.0f);
 		Matrix4f MV = t * r;
 		Matrix4f MVP = P * MV;
 		cube.m_TransformationMatrix = MVP;
 
-		t = TranslationMatrix(200.0f, 0.0f, -200.0f);
+		t = TranslationMatrix(0.0f, 0.0f, -300.0f);
 		r = RotationMatrix(rotY, rotY, rotY);
 		MV = t * r;
 		MVP = P * MV;
