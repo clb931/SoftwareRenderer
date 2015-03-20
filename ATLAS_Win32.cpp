@@ -349,7 +349,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		last_time = current_time;
 
 		PERSIST real32 rotX = 0.0f, rotY = 300.0f, rotZ = 0.0f;
-		rotY += (real32)delta_time / 50.0f;
+		rotY += (real32)delta_time / 10.0f;
 		if (fabs(rotX) > 360.0f)
 			rotX = 0.0f;
 		if (fabs(rotY) > 360.0f)
@@ -371,7 +371,8 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 			70.0f, 0.1f, 1000.0f);
 		Matrix4f t = TranslationMatrix(0.0f, 0.0f, z_position);
 		Matrix4f r = RotationMatrix(0.0f, rotY, rotZ);
-		r = r * RotationMatrix(-90.0f, 0.0f, 0.0f);
+		if (strcmp(model->GetName(), "SpaceFight") == 0)
+			r = r * RotationMatrix(-90.0f, 0.0f, 0.0f);
 		model->m_TransformationMatrix = t * r;
 		Matrix4f MVP = P * model->m_TransformationMatrix;
 		
