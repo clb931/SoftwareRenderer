@@ -8,18 +8,16 @@ Vertex::Vertex(Vector4f position, UV uv, Color color)
 	this->uv = uv;
 	this->color = color;
 }
-Vertex &Vertex::operator /= (const real32 &rhs)
+void Vertex::PerspectiveDivide()
 {
-	pos.x /= rhs;
-	pos.y /= rhs;
-	pos.z /= rhs;
+	pos.x /= pos.w;
+	pos.y /= pos.w;
+	pos.z /= pos.w;
 
-	uv.u /= rhs;
-	uv.v /= rhs;
+	uv.u /= pos.w;
+	uv.v /= pos.w;
 
-	color.R /= rhs;
-	color.G /= rhs;
-	color.B /= rhs;
-
-	return *this;
+	color.R /= pos.w;
+	color.G /= pos.w;
+	color.B /= pos.w;
 }

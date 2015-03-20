@@ -169,14 +169,14 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 Vertex verts[]
 {
-	Vertex(Vector4f(-0.5f, -0.5f, 0.5f), UV(0.0f, 0.0f), Color::YELLOW),	// left  - top    - front
-	Vertex(Vector4f(0.5f, -0.5f, 0.5f), UV(1.0f, 0.0f), Color::WHITE),	// right - top    - front
-	Vertex(Vector4f(0.5f, -0.5f, -0.5f), UV(1.0f, 0.0f), Color::CYAN),	// left  - bottom - front
-	Vertex(Vector4f(-0.5f, -0.5f, -0.5f), UV(0.0f, 0.0f), Color::GREEN),// right - bottom - front
-	Vertex(Vector4f(-0.5f, 0.5f, 0.5f), UV(0.0f, 1.0f), Color::RED),	// left  - top    - back
-	Vertex(Vector4f(0.5f, 0.5f, 0.5f), UV(1.0f, 1.0f), Color::MAGENTA),	// right - top    - back
-	Vertex(Vector4f(0.5f, 0.5f, -0.5f), UV(1.0f, 1.0f), Color::BLUE), 	// left  - bottom - back
-	Vertex(Vector4f(-0.5f, 0.5f, -0.5f), UV(0.0f, 1.0f), Color::BLACK)	// right - bottom - back
+	Vertex(Vector4f(-0.5f, -0.5f, 0.5f), UV(0.0f, 0.0f), Color::YELLOW),// left  - bottom	- back
+	Vertex(Vector4f(0.5f, -0.5f, 0.5f), UV(1.0f, 0.0f), Color::WHITE),	// right - bottom	- back
+	Vertex(Vector4f(0.5f, -0.5f, -0.5f), UV(1.0f, 0.0f), Color::CYAN),	// left  - bottom	- front
+	Vertex(Vector4f(-0.5f, -0.5f, -0.5f), UV(0.0f, 0.0f), Color::GREEN),// right - bottom	- front
+	Vertex(Vector4f(-0.5f, 0.5f, 0.5f), UV(0.0f, 1.0f), Color::RED),	// left  - top		- back
+	Vertex(Vector4f(0.5f, 0.5f, 0.5f), UV(1.0f, 1.0f), Color::MAGENTA),	// right - top		- back
+	Vertex(Vector4f(0.5f, 0.5f, -0.5f), UV(1.0f, 1.0f), Color::BLUE), 	// left  - top		- front
+	Vertex(Vector4f(-0.5f, 0.5f, -0.5f), UV(0.0f, 1.0f), Color::BLACK)	// right - top		- front
 };
 ATLAS::Polygon polys[]
 {
@@ -255,15 +255,15 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		Matrix4f MVP = P * MV;
 		cube.m_TransformationMatrix = MVP;
 
-		t = TranslationMatrix(0.0f, 0.0f, -300.0f);
+		t = TranslationMatrix(200.0f, 0.0f, -200.0f);
 		r = RotationMatrix(rotY, rotY, rotY);
 		MV = t * r;
 		MVP = P * MV;
 		spaceship.m_TransformationMatrix = MVP;
 				
 		rc.Clear(FRAME_BUFFER | DEPTH_BUFFER);
-		DrawModel(&rc, &cube);
-		DrawModel(&rc, &spaceship);
+			DrawModel(&rc, &cube);
+			DrawModel(&rc, &spaceship);
 		Win32::SwapBuffers(&win32_window);
 	}
 

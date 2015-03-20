@@ -27,9 +27,9 @@ namespace ATLAS
 	struct Edge
 	{
 		Edge(Vertex bot, Vertex top);
-		void operator++();
+		void Step();
 
-		uint32	y_min, y_max;
+		int32	y_min, y_max;
 		real32	y_diff;
 		real32	x_step, x;
 		real32	depth_step, depth;
@@ -44,12 +44,9 @@ namespace ATLAS
 		RenderContext(void *buffer, uint32 width, uint32 height, uint32 bpp);
 		~RenderContext();
 
-		void DrawScene();
 		void DrawTriangle(Vertex v1, Vertex v2, Vertex v3);
-		void DrawScanLine(Edge *left, Edge *right, uint32 y);
 		void DrawLine(Vertex v1, Vertex v2);
 		void DrawPoint(Vertex v);
-		Color GetTexel(UV uv);
 		void DrawPixel(uint32 x, uint32 y, const Color &color);
 		void Clear(uint8 buffer_flags);
 
@@ -59,6 +56,10 @@ namespace ATLAS
 		void SetFlag(AtlasFlag flag, bool32 value);
 
 	private:
+		void ScanTriangle(Edge *pLongEdge, Edge *pRightEdge);
+		void DrawScanLine(Edge *left, Edge *right, uint32 y);
+		Color GetTexel(real32 x, real32 y);
+
 		void			*m_FrameBuffer;
 		void			*m_DepthBuffer;
 		uint32			m_Width;

@@ -5,7 +5,7 @@ namespace ATLAS
 	struct Vertex
 	{
 		Vertex(Vector4f position = Vector4f(), UV uv = UV(), Color color = Color());
-		Vertex &operator/=(const real32 &rhs);
+		void PerspectiveDivide();
 
 		Vector4f pos;
 		UV uv;
