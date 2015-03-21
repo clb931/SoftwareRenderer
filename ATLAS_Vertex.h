@@ -10,6 +10,7 @@ namespace ATLAS
 		
 		void PerspectiveDivide();
 		Vertex Lerp(const Vertex &vertex, const real32 lerp_amnt);
+		bool32 IsInView();
 
 		Vector4f pos;
 		Vector4f norm;

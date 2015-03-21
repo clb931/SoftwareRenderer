@@ -36,3 +36,9 @@ Vertex Vertex::Lerp(const Vertex &vertex, const real32 lerp_amnt)
 		lerp(uv, vertex.uv, lerp_amnt),
 		lerp(color, vertex.color, lerp_amnt));
 }
+bool32 Vertex::IsInView()
+{
+	return (abs(pos.x) <= abs(pos.w) &&
+		abs(pos.y) <= abs(pos.w) &&
+		abs(pos.z) <= abs(pos.w));
+}

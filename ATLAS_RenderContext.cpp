@@ -16,13 +16,16 @@ namespace ATLAS
 		m_Width = width;
 		m_Height = height;
 		//if (style & DEPTH_BUFFER)
-		m_DepthBuffer = new real32[m_Width * m_Height];
-
+		if (m_Width > 0 && m_Height > 0)
+			m_DepthBuffer = new real32[m_Width * m_Height];
 		m_ScreenTransform = ScreenSpaceMatrix(m_Width, m_Height);
-		SetClearColor(Color::BLACK);
-		Clear(FRAME_BUFFER | DEPTH_BUFFER);
-		SetPointSize(1);
+
+		SetDrawStyle(DRAW_TRIANGLES);
+		SetBlendMode(BLEND_NORMAL);
+		SetTexture(nullptr);
 		m_Flags = 0;
+		SetClearColor(Color::BLACK);
+		SetPointSize(1);
 	}
 	RenderContext::~RenderContext()
 	{
@@ -30,8 +33,25 @@ namespace ATLAS
 			delete[] m_DepthBuffer;
 	}
 
-	void RenderContext::DrawTriangle(Vertex v1, Vertex v2, Vertex v3, AtlasEnum style)
+	void RenderContext::DrawTriangle(Vertex v1, Vertex v2, Vertex v3)
 	{
+		if (v1.IsInView() && v2.IsInView() && v2.IsInView()) {
+			if (m_DrawStyle == DRAW_TRIANGLES) {
+				FillTriangle(v1, v2, v3);
+			}
+			else if (m_DrawStyle == DRAW_LINES) {
+				DrawLine(v1, v2);
+				DrawLine(v2, v3);
+				DrawLine(v3, v1);
+			}
+			else if (m_DrawStyle == DRAW_POINTS) {
+				DrawPoint(v1);
+				DrawPoint(v2);
+				DrawPoint(v3);
+			}
+			return;
+		}
+
 		std::vector<Vertex> vertices;
 		std::vector<Vertex> temp;
 
@@ -45,13 +65,13 @@ namespace ATLAS
 			Vertex *start = &vertices.at(0);
 
 			for (uint32 i = 0; i < vertices.size() - 1; ++i) {
-				if (style == DRAW_TRIANGLES) {
+				if (m_DrawStyle == DRAW_TRIANGLES) {
 					FillTriangle(*start, vertices.at(i), vertices.at(i + 1));
-				} else if (style == DRAW_LINES) {
+				} else if (m_DrawStyle == DRAW_LINES) {
 					DrawLine(*start, vertices.at(i));
 					DrawLine(vertices.at(i), vertices.at(i + 1));
 					DrawLine(vertices.at(i + 1), *start);
-				} else if (style == DRAW_POINTS) {
+				} else if (m_DrawStyle == DRAW_POINTS) {
 					DrawPoint(*start);
 					DrawPoint(vertices.at(i));
 					DrawPoint(vertices.at(i + 1));
@@ -88,7 +108,10 @@ namespace ATLAS
 			for (real32 x = xmin; x <= xmax; x += 1.0f) {
 				real32 y = v1.pos.y + ((x - v1.pos.x) * slope);
 				Color color = v1.color + ((v2.color - v1.color) * ((x - v1.pos.x) / xdiff));
-				DrawPixel((uint32)x, (uint32)y, color);
+				real32 u = v1.uv.u + ((v2.uv.u - v1.uv.u) * ((x - v1.pos.x) / xdiff));
+				real32 v = v1.uv.v + ((v2.uv.v - v1.uv.v) * ((x - v1.pos.x) / xdiff));
+				Color texel = GetTexel(u, v);
+				DrawPixel((uint32)x, (uint32)y, Blend(color, texel, m_BlendMode));
 			}
 		}
 		else {
@@ -107,7 +130,10 @@ namespace ATLAS
 			for (real32 y = ymin; y <= ymax; y += 1.0f) {
 				real32 x = v1.pos.x + ((y - v1.pos.y) * slope);
 				Color color = v1.color + ((v2.color - v1.color) * ((y - v1.pos.y) / ydiff));
-				DrawPixel((uint32)x, (uint32)y, color);
+				real32 u = v1.uv.u + ((v2.uv.u - v1.uv.u) * ((y - v1.pos.y) / ydiff));
+				real32 v = v1.uv.v + ((v2.uv.v - v1.uv.v) * ((y - v1.pos.y) / ydiff));
+				Color texel = GetTexel(u, v);
+				DrawPixel((uint32)x, (uint32)y, Blend(color, texel, m_BlendMode));
 			}
 		}
 	}
@@ -115,9 +141,12 @@ namespace ATLAS
 	{
 		v.pos = (m_ScreenTransform * v.pos) / v.pos.w;
 
-		for (int32 y = -m_PointSize; y < m_PointSize; ++y)
-			for (int32 x = -m_PointSize; x < m_PointSize; ++x)
-				DrawPixel((uint32)v.pos.x + x, (uint32)v.pos.y + y, v.color);
+		for (int32 y = -m_PointSize; y < m_PointSize; ++y) {
+			for (int32 x = -m_PointSize; x < m_PointSize; ++x) {
+				Color texel = GetTexel(v.uv.u, v.uv.v);
+				DrawPixel((uint32)v.pos.x + x, (uint32)v.pos.y + y, Blend(v.color, texel, m_BlendMode));
+			}
+		}
 	}
 	void RenderContext::DrawPixel(uint32 x, uint32 y, const Color &color) {
 		if (x >= m_Width || y >= m_Height) {
@@ -277,13 +306,14 @@ namespace ATLAS
 		if (!x_diff)
 			return;
 
-		real32	depth_step = (pRight->depth - pLeft->depth) / x_diff;
+		real32	one_over_x_diff = 1.0f / x_diff;
+		real32	depth_step = (pRight->depth - pLeft->depth) * one_over_x_diff;
 		real32	depth = pLeft->depth + depth_step * x_prestep;
-		real32	one_over_z_step = (pRight->one_over_z - pLeft->one_over_z) / x_diff;
+		real32	one_over_z_step = (pRight->one_over_z - pLeft->one_over_z) * one_over_x_diff;
 		real32	one_over_z = pLeft->one_over_z + one_over_z_step * x_prestep;
-		Color	color_step = (pRight->color - pLeft->color) / x_diff;
+		Color	color_step = (pRight->color - pLeft->color) * one_over_x_diff;
 		Color	color = pLeft->color + color_step * x_prestep;
-		UV		uv_step = (pRight->uv - pLeft->uv) / x_diff;
+		UV		uv_step = (pRight->uv - pLeft->uv) * one_over_x_diff;
 		UV		uv = pLeft->uv + uv_step * x_prestep;
 		real32	*pDepthBuffer = (real32 *)m_DepthBuffer + y * m_Width;
 
@@ -295,10 +325,10 @@ namespace ATLAS
 			if (m_DepthBuffer && m_Flags & DEPTH_TEST) {
 				if (depth < *(pDepthBuffer + x)) {
 					*(pDepthBuffer + x) = depth;
-					DrawPixel(x, y, Blend(pixel, texel, m_CurrentBlendMode));
+					DrawPixel(x, y, Blend(pixel, texel, m_BlendMode));
 				}
 			} else {
-				DrawPixel(x, y, Blend(pixel, texel, m_CurrentBlendMode));
+				DrawPixel(x, y, Blend(pixel, texel, m_BlendMode));
 			}
 
 			depth += depth_step;
@@ -309,34 +339,45 @@ namespace ATLAS
 	}
 	Color RenderContext::GetTexel(real32 x, real32 y)
 	{
-		if (!m_CurrentTexture)
+		if (!m_Texture)
 			return Color::WHITE;
 
-		int32 xx = (int32)(x * (m_CurrentTexture->width - 1) + 0.5f);
-		int32 yy = (int32)(y * (m_CurrentTexture->height - 1) + 0.5f);
-		uint32 i = (xx + yy * m_CurrentTexture->width) * 4;
+		int32 xx = (int32)(x * (m_Texture->width - 1) + 0.5f);
+		int32 yy = (int32)(y * (m_Texture->height - 1) + 0.5f);
+		uint32 i = (xx + yy * m_Texture->width) * 4;
 
-		if (i > m_CurrentTexture->width * m_CurrentTexture->height * 4) {
+		if (i > m_Texture->width * m_Texture->height * 4) {
 			OutputDebugStringA("Texture coord out of range\n");
 			//__debugbreak(); // need to fix this
 			return Color::WHITE;
 		}
 
 		return Color(
-			m_CurrentTexture->data[i + 0] / 255.0f,
-			m_CurrentTexture->data[i + 1] / 255.0f,
-			m_CurrentTexture->data[i + 2] / 255.0f,
-			m_CurrentTexture->data[i + 3] / 255.0f);
+			m_Texture->data[i + 0] / 255.0f,
+			m_Texture->data[i + 1] / 255.0f,
+			m_Texture->data[i + 2] / 255.0f,
+			m_Texture->data[i + 3] / 255.0f);
 
 	}
 
-	void RenderContext::SetCurrentTexture(Texture *texture)
+	void RenderContext::SetDrawStyle(AtlasEnum draw_style)
 	{
-		m_CurrentTexture = texture;
+		m_DrawStyle = draw_style;
 	}
 	void RenderContext::SetBlendMode(BlendMode blend_mode)
 	{
-		m_CurrentBlendMode = blend_mode;
+		m_BlendMode = blend_mode;
+	}
+	void RenderContext::SetTexture(Texture *texture)
+	{
+		m_Texture = texture;
+	}
+	void RenderContext::SetFlag(AtlasFlag flag, bool32 value)
+	{
+		if (value)
+			m_Flags |= flag;
+		else
+			m_Flags &= ~flag;
 	}
 	void RenderContext::SetClearColor(const Color &color)
 	{
@@ -346,16 +387,34 @@ namespace ATLAS
 	{
 		m_PointSize = size;
 	}
-	void RenderContext::SetFlag(AtlasFlag flag, bool32 value)
+
+	AtlasEnum RenderContext::GetDrawStyle()
 	{
-		if (value)
-			m_Flags |= flag;
-		else
-			m_Flags &= ~flag;
+		return (m_DrawStyle);
+	}
+	Texture *RenderContext::GetTexture()
+	{
+		return (m_Texture);
+	}
+	BlendMode RenderContext::GetBlendMode()
+	{
+		return (m_BlendMode);
 	}
 	bool32 RenderContext::GetFlag(AtlasFlag flag)
 	{
 		return (m_Flags & flag);
+	}
+	Color RenderContext::GetClearColor()
+	{
+		real32 a = ((m_ClearColor >> 24) & 0xFF) / 255.0f;
+		real32 r = ((m_ClearColor >> 16) & 0xFF) / 255.0f;
+		real32 g = ((m_ClearColor >> 8) & 0xFF) / 255.0f;
+		real32 b = ((m_ClearColor >> 0) & 0xFF) / 255.0f;
+		return Color (r, g, b, a);
+	}
+	int32 RenderContext::GetPointSize()
+	{
+		return m_PointSize;
 	}
 
 	Edge::Edge(Vertex bot, Vertex top)

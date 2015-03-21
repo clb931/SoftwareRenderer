@@ -15,9 +15,9 @@ namespace ATLAS
 		FRAME_BUFFER = 1,
 		DEPTH_BUFFER = 2,
 
-		DRAW_POINTS = 1,
-		DRAW_LINES = 2,
-		DRAW_TRIANGLES = 4,
+		DRAW_POINTS = 0,
+		DRAW_LINES = 1,
+		DRAW_TRIANGLES = 2,
 	};
 	enum AtlasFlag
 	{
@@ -45,18 +45,25 @@ namespace ATLAS
 		RenderContext(void *buffer, uint32 width, uint32 height, uint32 bpp);
 		~RenderContext();
 
-		void DrawTriangle(Vertex v1, Vertex v2, Vertex v3, AtlasEnum style = DRAW_TRIANGLES);
+		void DrawTriangle(Vertex v1, Vertex v2, Vertex v3);
 		void DrawLine(Vertex v1, Vertex v2);
 		void DrawPoint(Vertex v);
 		void DrawPixel(uint32 x, uint32 y, const Color &color);
 		void Clear(uint8 buffer_flags);
 
-		void SetCurrentTexture(Texture *texture);
+		void SetDrawStyle(AtlasEnum draw_style);
 		void SetBlendMode(BlendMode blend_mode);
+		void SetTexture(Texture *texture);
+		void SetFlag(AtlasFlag flag, bool32 value);
 		void SetClearColor(const Color &color);
 		void SetPointSize(int32 size);
-		void SetFlag(AtlasFlag flag, bool32 value);
+
+		AtlasEnum GetDrawStyle();
+		BlendMode GetBlendMode();
+		Texture *GetTexture();
 		bool32 GetFlag(AtlasFlag flag);
+		Color GetClearColor();
+		int32 GetPointSize();
 
 	private:
 		void FillTriangle(Vertex v1, Vertex v2, Vertex v3);
@@ -72,13 +79,14 @@ namespace ATLAS
 		void			*m_DepthBuffer;
 		uint32			m_Width;
 		uint32			m_Height;
-
-		BlendMode		m_CurrentBlendMode;
-		Texture			*m_CurrentTexture;
 		Matrix4f		m_ScreenTransform;
+
+		AtlasEnum		m_DrawStyle;
+		BlendMode		m_BlendMode;
+		Texture			*m_Texture;
+		uint32			m_Flags;
 		Color32			m_ClearColor;
 		int32			m_PointSize;
-		uint32			m_Flags;
 	};
 }
 

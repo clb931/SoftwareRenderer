@@ -3,6 +3,8 @@
 #include <Windows.h>
 using namespace ATLAS;
 
+uint32 texture_count = 0;
+
 Texture::Texture(const char *file_path) : data(nullptr)
 {
 	char str[256] = "";
@@ -43,7 +45,7 @@ Texture::Texture(const char *file_path) : data(nullptr)
 			j += 4;
 		}
 
-		pitch = width * (bpp / 8);
+		id = texture_count++;
 
 		OutputDebugStringA("Clossing File...\n\n");
 		fclose(pFile);
