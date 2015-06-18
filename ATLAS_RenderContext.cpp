@@ -33,6 +33,12 @@ namespace ATLAS
 			delete[] m_DepthBuffer;
 	}
 
+	void RenderContext::Resize(uint32 width, uint32 height)
+	{
+		m_Width = width;
+		m_Height = height;
+	}
+
 	void RenderContext::DrawTriangle(Vertex v1, Vertex v2, Vertex v3)
 	{
 		if (v1.IsInView() && v2.IsInView() && v2.IsInView()) {
@@ -436,7 +442,7 @@ namespace ATLAS
 
 		one_over_z_step = ((1.0f / top.pos.w) - (1.0f / bot.pos.w)) / y_diff;
 		one_over_z = (1.0f / bot.pos.w) + one_over_z_step * y_prestep;
-		
+
 		color_step = (top.color - bot.color) / y_diff;
 		color = bot.color + color_step * y_prestep;
 

@@ -24,7 +24,7 @@ namespace ATLAS
 		CULL_FACES = 1,
 		DEPTH_TEST = 2,
 	};
-	
+
 	struct Edge
 	{
 		Edge(Vertex bot, Vertex top);
@@ -44,6 +44,8 @@ namespace ATLAS
 	public:
 		RenderContext(void *buffer, uint32 width, uint32 height, uint32 bpp);
 		~RenderContext();
+
+		void Resize(uint32 width, uint32 height);
 
 		void DrawTriangle(Vertex v1, Vertex v2, Vertex v3);
 		void DrawLine(Vertex v1, Vertex v2);

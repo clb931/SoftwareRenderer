@@ -6,6 +6,7 @@
 #include <vector>
 
 using std::string;
+using std::wstring;
 
 typedef int8_t		int8;
 typedef int16_t		int16;
@@ -17,7 +18,7 @@ typedef uint32_t	uint32;
 typedef uint64_t	uint64;
 typedef int32_t		bool32;
 typedef float		real32;
-typedef double		real64; 
+typedef double		real64;
 
 #define GLOBAL	static
 #define INTERN	static

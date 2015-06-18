@@ -1,6 +1,7 @@
 #include "ATLAS_Stdafx.h"
 #include "ATLAS_Model.h"
 #include "ATLAS_Texture.h"
+#include <intrin.h>
 #include <Windows.h>
 using namespace ATLAS;
 
@@ -48,7 +49,7 @@ Model::Model()
 	m_Polygons = nullptr;
 	m_Texture = 0;
 }
-Model::Model(const char *file_path, Texture *texture)
+Model::Model(const char *file_path, Texture *texture) : Model()
 {
 	char str[256] = "";
 	FILE *pFile;
@@ -56,87 +57,92 @@ Model::Model(const char *file_path, Texture *texture)
 	uint32 chunk_length = 0;
 	int64 file_length = 0;
 
-	OutputDebugStringA("\nOpenging file...\n");
+	printf("\nOpenging file...\n");
+	fflush(stdout);
+
 	fopen_s(&pFile, file_path, "rb");
 	if (pFile) {
 		fseek(pFile, 0, SEEK_END);
 		file_length = ftell(pFile);
 		fseek(pFile, 0, SEEK_SET);
 
-		sprintf_s(str, 256, "File Size: %.2fKB\n", file_length / 1024.0f);
-		OutputDebugStringA(str);
+		printf("File Size: %.2fKB\n", file_length / 1024.0f);
+		fflush(stdout);
 
 		while (ftell(pFile) < file_length) {
 			fread(&chunk_id, sizeof(uint16), 1, pFile);
 			fread(&chunk_length, sizeof(uint32), 1, pFile);
 
-			sprintf_s(str, 256, "Chunk: %.4X\nLength: %i\n", chunk_id, chunk_length);
-			OutputDebugStringA(str);
+			printf("Chunk: %.4X\nLength: %i\n", chunk_id, chunk_length);
+			fflush(stdout);
 
 			switch (chunk_id) {
-			case 0x4D4D:
-			case 0x3D3D:
-			case 0x4100:
-				break;
+				case 0x4D4D:
+				case 0x3D3D:
+				case 0x4100:
+					break;
 
-			case 0x4000: {
-				uint32 i = 0;
-				char c = '\0';
+				case 0x4000: {
+					uint32 i = 0;
+					char c = '\0';
 
-				do {
-					fread(&c, sizeof(char), 1, pFile);
-					m_Name[i++] = c;
-				} while (c != '\0' && i < 30);
-			} break;
+					do {
+						fread(&c, sizeof(char), 1, pFile);
+						m_Name[i++] = c;
+					} while (c != '\0' && i < 30);
 
-			case 0x4110: {
-				fread(&m_NumVertices, sizeof(uint16), 1, pFile);
+					printf("\tName: %s\n", m_Name);
+					fflush(stdout);
+				} break;
 
-				sprintf_s(str, 256, "\tVertices: %i\n", m_NumVertices);
-				OutputDebugStringA(str);
+				case 0x4110: {
+					fread(&m_NumVertices, sizeof(uint16), 1, pFile);
 
-				m_Vertices = new Vertex[m_NumVertices];
-				for (uint32 i = 0; i < m_NumVertices; ++i) {
-					fread(&m_Vertices[i].pos.x, sizeof(real32), 1, pFile);
-					fread(&m_Vertices[i].pos.y, sizeof(real32), 1, pFile);
-					fread(&m_Vertices[i].pos.z, sizeof(real32), 1, pFile);
+					printf("\tVertices: %i\n", m_NumVertices);
+					fflush(stdout);
 
-					m_Vertices[i].color = Color::WHITE;
-				}
-			} break;
+					m_Vertices = new Vertex[m_NumVertices];
+					for (uint32 i = 0; i < m_NumVertices; ++i) {
+						fread(&m_Vertices[i].pos.x, sizeof(real32), 1, pFile);
+						fread(&m_Vertices[i].pos.y, sizeof(real32), 1, pFile);
+						fread(&m_Vertices[i].pos.z, sizeof(real32), 1, pFile);
 
-			case 0x4120: {
-				uint16 flag = 0;
-				fread(&m_NumPolygons, sizeof(uint16), 1, pFile);
+						m_Vertices[i].color = Color::WHITE;
+					}
+				} break;
 
-				sprintf_s(str, 256, "\tFaces: %i\n", m_NumPolygons);
-				OutputDebugStringA(str);
+				case 0x4120: {
+					uint16 flag = 0;
+					fread(&m_NumPolygons, sizeof(uint16), 1, pFile);
 
-				m_Polygons = new ATLAS::Polygon[m_NumPolygons];
-				for (uint32 i = 0; i < m_NumPolygons; ++i) {
-					fread(&m_Polygons[i].v1, sizeof(uint16), 1, pFile);
-					fread(&m_Polygons[i].v2, sizeof(uint16), 1, pFile);
-					fread(&m_Polygons[i].v3, sizeof(uint16), 1, pFile);
-					fread(&flag, sizeof(uint16), 1, pFile);
-				}
-			} break;
+					printf("\tFaces: %i\n", m_NumPolygons);
+					fflush(stdout);
 
-			case 0x4140: {
-				uint16 num = 0;
-				fread(&num, sizeof(uint16), 1, pFile);
+					m_Polygons = new ATLAS::Polygon[m_NumPolygons];
+					for (uint32 i = 0; i < m_NumPolygons; ++i) {
+						fread(&m_Polygons[i].v1, sizeof(uint16), 1, pFile);
+						fread(&m_Polygons[i].v2, sizeof(uint16), 1, pFile);
+						fread(&m_Polygons[i].v3, sizeof(uint16), 1, pFile);
+						fread(&flag, sizeof(uint16), 1, pFile);
+					}
+				} break;
 
-				sprintf_s(str, 256, "\tUVs: %i\n", num);
-				OutputDebugStringA(str);
+				case 0x4140: {
+					uint16 num = 0;
+					fread(&num, sizeof(uint16), 1, pFile);
 
-				for (uint32 i = 0; i < num; ++i) {
-					fread(&m_Vertices[i].uv.u, sizeof(real32), 1, pFile);
-					fread(&m_Vertices[i].uv.v, sizeof(real32), 1, pFile);
-				}
-			} break;
+					printf("\tUVs: %i\n", num);
+					fflush(stdout);
 
-			default: {
-				fseek(pFile, chunk_length - 6, SEEK_CUR);
-			} break;
+					for (uint32 i = 0; i < num; ++i) {
+						fread(&m_Vertices[i].uv.u, sizeof(real32), 1, pFile);
+						fread(&m_Vertices[i].uv.v, sizeof(real32), 1, pFile);
+					}
+				} break;
+
+				default: {
+					fseek(pFile, chunk_length - 6, SEEK_CUR);
+				} break;
 			}
 		}
 
@@ -144,12 +150,15 @@ Model::Model(const char *file_path, Texture *texture)
 		m_Texture = texture;
 		CalculateNormals(this);
 
-		OutputDebugStringA("Clossing File...\n\n");
+		printf("Clossing File...\n\n");
+		fflush(stdout);
+
 		fclose(pFile);
 	}
 	else {
-		perror("The following error occurred");
-		OutputDebugStringA("File does not exist.\n");
+		printf("The following error occurred: ");
+		printf("File does not exist.\n");
+		fflush(stdout);
 	}
 }
 Model::Model(Vertex *vertices, uint32 num_vertices,
@@ -170,7 +179,7 @@ Model::Model(Vertex *vertices, uint32 num_vertices,
 		if (i < m_NumPolygons)
 			m_Polygons[i] = polygons[i];
 	}
-	
+
 	CalculateNormals(this);
 }
 Model::~Model()

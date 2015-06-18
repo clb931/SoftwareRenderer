@@ -11,7 +11,9 @@ Texture::Texture(const char *file_path) : data(nullptr)
 	FILE *pFile;
 	BMP colors;
 
-	OutputDebugStringA("\nOpenging file...\n");
+	printf("\nOpenging file...\n");
+	fflush(stdout);
+
 	fopen_s(&pFile, file_path, "rb");
 	if (pFile) {
 		fseek(pFile, sizeof(short) * 9, SEEK_SET);
@@ -21,8 +23,8 @@ Texture::Texture(const char *file_path) : data(nullptr)
 		fread(&bpp, sizeof(short), 1, pFile);
 		fseek(pFile, sizeof(int) * 6, SEEK_CUR);
 
-		sprintf_s(str, 256, "Dimensions: %i x %i\nBPP: %i\n", width, height, bpp);
-		OutputDebugStringA(str);
+		printf("Dimensions: %i x %i\nBPP: %i\n", width, height, bpp);
+		fflush(stdout);
 
 		if (bpp <= 8)
 			for (uint32 a = 0; a < bpp; a++)
@@ -31,8 +33,9 @@ Texture::Texture(const char *file_path) : data(nullptr)
 		data = (uint8 *)malloc(width * height * 4);
 		memset(data, 0, width * height * 4);
 
-		sprintf_s(str, 256, "nsize: %.2fKB\n", (width * height) / 1024.0f);
-		OutputDebugStringA(str);
+		printf("nsize: %.2fKB\n", (width * height) / 1024.0f);
+		fflush(stdout);
+
 		uint32 j = 0;
 		for (uint32 i = 0; i < width * height; ++i) {
 			fread(&colors, sizeof(BMP), 1, pFile);
@@ -47,17 +50,21 @@ Texture::Texture(const char *file_path) : data(nullptr)
 
 		id = texture_count++;
 
-		OutputDebugStringA("Clossing File...\n\n");
+		printf("Clossing File...\n\n");
+		fflush(stdout);
+
 		fclose(pFile);
 	}
 	else {
-		perror("The following error occurred");
-		OutputDebugStringA("File does not exist.\n");
+		printf("The following error occurred");
+		printf("File does not exist.\n");
+		fflush(stdout);
 	}
 }
 Texture::~Texture()
 {
-	OutputDebugStringA("Freeing Texture...\n\n");
+	printf("Freeing Texture (ID: %i)...\n\n", id);
+	fflush(stdout);
 
 	if (data)
 		free(data);
