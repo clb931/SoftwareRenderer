@@ -1,7 +1,5 @@
-#include "ATLAS_Stdafx.h"
+#include "stdafx.h"
 #include "ATLAS_Win32.h"
-#include <Windows.h>
-using namespace ATLAS;
 
 
 LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

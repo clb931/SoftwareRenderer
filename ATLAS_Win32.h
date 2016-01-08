@@ -1,4 +1,4 @@
-#ifndef ATLAS_Win32
+#ifndef ATLAS_WIN32_H
 
 
 namespace ATLAS
@@ -79,5 +79,5 @@ namespace ATLAS
 }
 
 
-#define ATLAS_Win32
+#define ATLAS_WIN32_H
 #endif

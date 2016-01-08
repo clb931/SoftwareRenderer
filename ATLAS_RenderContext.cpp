@@ -1,12 +1,10 @@
-#include "ATLAS_Stdafx.h"
+#include "stdafx.h"
 #include "ATLAS_RenderContext.h"
-#include "ATLAS_Texture.h"
-#include <memory>
-#include <Windows.h>
 
-real32 zNear = 0.0f;
-real32 zFar = 1.0f;
-ATLAS::Matrix4f View = ATLAS::IdentityMatrix;
+
+INTERN real32 zNear = 0.0f;
+INTERN real32 zFar = 1.0f;
+INTERN ATLAS::Matrix4f View = ATLAS::IdentityMatrix;
 
 namespace ATLAS
 {
@@ -27,6 +25,7 @@ namespace ATLAS
 		SetClearColor(Color::BLACK);
 		SetPointSize(1);
 	}
+
 	RenderContext::~RenderContext()
 	{
 		if (m_DepthBuffer)
@@ -41,7 +40,7 @@ namespace ATLAS
 
 	void RenderContext::DrawTriangle(Vertex v1, Vertex v2, Vertex v3)
 	{
-		if (v1.IsInView() && v2.IsInView() && v2.IsInView()) {
+		if (v1.IsInView() && v2.IsInView() && v3.IsInView()) {
 			if (m_DrawStyle == DRAW_TRIANGLES) {
 				FillTriangle(v1, v2, v3);
 			}
@@ -85,6 +84,7 @@ namespace ATLAS
 			}
 		}
 	}
+
 	void RenderContext::DrawLine(Vertex v1, Vertex v2)
 	{
 		v1.pos = (m_ScreenTransform * v1.pos) / v1.pos.w;
@@ -143,6 +143,7 @@ namespace ATLAS
 			}
 		}
 	}
+
 	void RenderContext::DrawPoint(Vertex v)
 	{
 		v.pos = (m_ScreenTransform * v.pos) / v.pos.w;
@@ -154,15 +155,17 @@ namespace ATLAS
 			}
 		}
 	}
+
 	void RenderContext::DrawPixel(uint32 x, uint32 y, const Color &color) {
 		if (x >= m_Width || y >= m_Height) {
 			__debugbreak();
 			return;
 		}
 
-		uint32 *pixel = (uint32 *)(m_FrameBuffer) + x + (y * m_Width);
+		uint32 *pixel = (uint32 *)(m_FrameBuffer)+x + (y * m_Width);
 		*pixel = color.toColor32();
 	}
+
 	void RenderContext::Clear(uint8 flags)
 	{
 		uint32 *pixel = (uint32 *)m_FrameBuffer;
@@ -213,31 +216,8 @@ namespace ATLAS
 		Edge mid2top(pVertices[1], pVertices[2]);
 		ScanTriangle(&bot2top, &bot2mid);
 		ScanTriangle(&bot2top, &mid2top);
-
-		//Edge *pLeft, *pRight;
-		//pLeft = bot2mid.x < bot2top.x ? &bot2mid : &bot2top;
-		//pRight = bot2mid.x > bot2top.x ? &bot2mid : &bot2top;
-		//int32 y_min = max(0, bot2mid.y_min);
-		//int32 y_max = min(bot2mid.y_max, m_Height - 1);
-		//if (bot2mid.y_diff && bot2top.y_diff) {
-		//	for (int32 y = y_min; y < y_max; ++y) {
-		//		DrawScanLine(pLeft, pRight, y);
-		//		bot2mid.Step();
-		//		bot2top.Step();
-		//	}
-		//}
-		//pLeft = mid2top.x < bot2top.x ? &mid2top : &bot2top;
-		//pRight = mid2top.x > bot2top.x ? &mid2top : &bot2top;
-		//y_min = max(0, mid2top.y_min);
-		//y_max = min(mid2top.y_max, m_Height - 1);
-		//if (mid2top.y_diff && bot2top.y_diff) {
-		//	for (int32 y = y_min; y < y_max; ++y) {
-		//		DrawScanLine(pLeft, pRight, y);
-		//		mid2top.Step();
-		//		bot2top.Step();
-		//	}
-		//}
 	}
+
 	bool32 RenderContext::ClipPolygonAxis(std::vector<Vertex> *vertices,
 		std::vector<Vertex> *temp, int32 axis)
 	{
@@ -252,6 +232,7 @@ namespace ATLAS
 
 		return !vertices->empty();
 	}
+
 	void RenderContext::ClipPolygonComponent(std::vector<Vertex> *in_vertices, int32 component_index,
 		real32 component_factor, std::vector<Vertex> *out_vertices)
 	{
@@ -278,6 +259,7 @@ namespace ATLAS
 			prevInside		= inside;
 		}
 	}
+
 	void RenderContext::ScanTriangle(Edge *pLongEdge, Edge *pShortEdge)
 	{
 		Edge *pLeft, *pRight;
@@ -299,6 +281,7 @@ namespace ATLAS
 			pLeft->Step();
 		}
 	}
+
 	void RenderContext::FillScanLine(Edge *pLeft, Edge *pRight, uint32 y)
 	{
 		uint32 x_min = (uint32)ceil(pLeft->x);
@@ -343,6 +326,7 @@ namespace ATLAS
 			uv += uv_step;
 		}
 	}
+
 	Color RenderContext::GetTexel(real32 x, real32 y)
 	{
 		if (!m_Texture)
@@ -370,14 +354,17 @@ namespace ATLAS
 	{
 		m_DrawStyle = draw_style;
 	}
+
 	void RenderContext::SetBlendMode(BlendMode blend_mode)
 	{
 		m_BlendMode = blend_mode;
 	}
+
 	void RenderContext::SetTexture(Texture *texture)
 	{
 		m_Texture = texture;
 	}
+
 	void RenderContext::SetFlag(AtlasFlag flag, bool32 value)
 	{
 		if (value)
@@ -385,10 +372,12 @@ namespace ATLAS
 		else
 			m_Flags &= ~flag;
 	}
+
 	void RenderContext::SetClearColor(const Color &color)
 	{
 		m_ClearColor = color.toColor32();
 	}
+
 	void RenderContext::SetPointSize(int32 size)
 	{
 		m_PointSize = size;
@@ -398,18 +387,22 @@ namespace ATLAS
 	{
 		return (m_DrawStyle);
 	}
+
 	Texture *RenderContext::GetTexture()
 	{
 		return (m_Texture);
 	}
+
 	BlendMode RenderContext::GetBlendMode()
 	{
 		return (m_BlendMode);
 	}
+
 	bool32 RenderContext::GetFlag(AtlasFlag flag)
 	{
 		return (m_Flags & flag);
 	}
+
 	Color RenderContext::GetClearColor()
 	{
 		real32 a = ((m_ClearColor >> 24) & 0xFF) / 255.0f;
@@ -418,6 +411,7 @@ namespace ATLAS
 		real32 b = ((m_ClearColor >> 0) & 0xFF) / 255.0f;
 		return Color (r, g, b, a);
 	}
+
 	int32 RenderContext::GetPointSize()
 	{
 		return m_PointSize;
@@ -449,6 +443,7 @@ namespace ATLAS
 		uv_step = (top.uv - bot.uv) / y_diff;
 		uv = bot.uv + uv_step * y_prestep;
 	}
+
 	void Edge::Step()
 	{
 		x += x_step;

@@ -1,5 +1,6 @@
 #ifndef ATLAS_TEXTURE_H
 
+
 namespace ATLAS
 {
 	class Texture
@@ -18,6 +19,7 @@ namespace ATLAS
 		struct BMP{ uint8 b, g, r; };
 	};
 }
+
 
 #define ATLAS_TEXTURE_H
 #endif

@@ -1,6 +1,8 @@
 #ifndef ATLAS_MODEL_H
+#include "ATLAS_Matrix.h"
 #include "ATLAS_Texture.h"
 #include "ATLAS_Vertex.h"
+
 
 namespace ATLAS
 {
@@ -13,6 +15,7 @@ namespace ATLAS
 		uint32 v2;
 		uint32 v3;
 	};
+
 	class Model
 	{
 	public:
@@ -37,6 +40,7 @@ namespace ATLAS
 		char m_Name[32];
 	};
 }
+
 
 #define ATLAS_MODEL_H
 #endif

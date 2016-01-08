@@ -1,4 +1,6 @@
-#include "ATLAS_Stdafx.h"
+#include "stdafx.h"
+#include "ATLAS_Vector.h"
+
 
 namespace ATLAS
 {

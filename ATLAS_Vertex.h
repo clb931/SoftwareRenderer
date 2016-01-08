@@ -1,4 +1,7 @@
 #ifndef ATLAS_VERTEX_H
+#include "ATLAS_Color.h"
+#include "ATLAS_Vector.h"
+
 
 namespace ATLAS
 {
@@ -18,6 +21,7 @@ namespace ATLAS
 		Color color;
 	};
 }
+
 
 #define ATLAS_VERTEX_H
 #endif

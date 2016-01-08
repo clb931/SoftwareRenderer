@@ -1,4 +1,6 @@
-#include "ATLAS_Stdafx.h"
+#include "stdafx.h"
+#include "ATLAS_Color.h"
+
 
 namespace ATLAS
 {
@@ -9,6 +11,7 @@ namespace ATLAS
 		B = min(1.0f, b);
 		A = min(1.0f, a);
 	}
+
 	Color32 Color::toColor32() const
 	{
 		return Color32(
@@ -17,6 +20,7 @@ namespace ATLAS
 			((uint32)(G * 255.0f) << 8) |
 			((uint32)(B * 255.0f) << 0));
 	}
+
 	Color Color::operator+=(const Color &top)
 	{
 		R += top.R;
@@ -25,14 +29,17 @@ namespace ATLAS
 		A += top.A;
 		return *this;
 	}
+
 	Color Color::operator-(const Color &top) const
 	{
 		return Color(R - top.R, G - top.G, B - top.B, A - top.A);
 	}
+	
 	Color Color::operator*(const Color &top) const
 	{
 		return Color(R * top.R, G * top.G, B * top.B, A * top.A);
 	}
+	
 	Color Color::operator/(const Color &top) const
 	{
 		if (top.R == 0.0f && top.G == 0.0f && top.B == 0.0f)
@@ -41,14 +48,17 @@ namespace ATLAS
 		Color c(R / top.R, G / top.G, B / top.B, A / top.A);
 		return c;
 	}
+	
 	Color Color::operator*(real32 f) const
 	{
 		return Color(R * f, G * f, B * f, A * f);
 	}
+	
 	Color Color::operator/(real32 f) const
 	{
 		return Color(R / f, G / f, B / f, A / f);
 	}
+	
 	Color Color::operator~()
 	{
 		return Color(1.0f - R, 1.0f - G, 1.0f - B, 1.0f - A);
@@ -105,6 +115,7 @@ namespace ATLAS
 
 		return result;
 	}
+	
 	Color Blend(Color bottom, Color top, BlendMode blend_mode)
 	{
 		Color result;
@@ -151,30 +162,37 @@ namespace ATLAS
 
 		return result;
 	}
+	
 	Color BlendNormal(Color bottom, Color top)
 	{
 		return top;
 	}
+	
 	Color BlendAdd(Color bottom, Color top)
 	{
 		return bottom + top;
 	}
+	
 	Color BlendSubtract(Color bottom, Color top)
 	{
 		return bottom - top;
 	}
+	
 	Color BlendMultiply(Color bottom, Color top)
 	{
 		return bottom * top;
 	}
+	
 	Color BlendDivide(Color bottom, Color top)
 	{
 		return bottom / top;
 	}
+	
 	Color BlendScreen(Color bottom, Color top)
 	{
 		return ~(~bottom * ~top);
 	}
+	
 	Color BlendOverlay(Color bottom, Color top)
 	{
 		Color c1 = (bottom * top) * 2.0f;
@@ -184,14 +202,17 @@ namespace ATLAS
 			bottom.B < 0.5f ? c1.B : c2.B,
 			bottom.A < 0.5f ? c1.A : c2.A);
 	}
+	
 	Color BlendDodge(Color bottom, Color top)
 	{
 		return bottom / ~top;
 	}
+	
 	Color BlendBurn(Color bottom, Color top)
 	{
 		return ~((~bottom) / top);
 	}
+	
 	Color BlendDifference(Color bottom, Color top)
 	{
 		Color c;
@@ -201,16 +222,17 @@ namespace ATLAS
 		c.A = bottom.A < top.A ? top.A - bottom.A : bottom.A - top.A;
 		return c;
 	}
+	
 	Color BlendDarken(Color bottom, Color top)
 	{
 		return Color(min(bottom.R, top.R), min(bottom.G, top.G), min(bottom.B, top.B), min(bottom.A, top.A));
 	}
+	
 	Color BlendLighten(Color bottom, Color top)
 	{
 		return Color(max(bottom.R, top.R), max(bottom.G, top.G), max(bottom.B, top.B), max(bottom.A, top.A));
 	}
-
-	
+		
 	struct hsv
 	{
 		real32 h;
@@ -253,6 +275,7 @@ namespace ATLAS
 
 		return out;
 	}
+	
 	Color hsv2rgb(hsv in)
 	{
 		Color out;

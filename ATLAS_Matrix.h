@@ -1,9 +1,8 @@
 #ifndef ATLAS_MATRIX_H
 
+
 namespace ATLAS
 {
-	union Vector4f;
-
 	union Matrix4f
 	{
 		friend Matrix4f operator+(const Matrix4f &lhs, const Matrix4f &rhs);
@@ -35,5 +34,6 @@ namespace ATLAS
 	string ToString(Matrix4f mat);
 }
 
-#define ATLAS_MATRIX_H_
+
+#define ATLAS_MATRIX_H
 #endif

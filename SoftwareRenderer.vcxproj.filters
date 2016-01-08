@@ -15,57 +15,66 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ATLAS_Matrix.h">
+    <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ATLAS_Vector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ATLAS_Stdafx.h">
+    <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ATLAS_Color.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ATLAS_RenderContext.h">
+    <ClInclude Include="ATLAS_Matrix.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ATLAS_Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ATLAS_RenderContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="ATLAS_Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ATLAS_Vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ATLAS_Vertex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ATLAS_Win32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ATLAS_Vector.cpp">
+    <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ATLAS_Win32.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ATLAS_Matrix.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ATLAS_Stdafx.cpp">
+    <ClCompile Include="SoftwareRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ATLAS_Color.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ATLAS_RenderContext.cpp">
+    <ClCompile Include="ATLAS_Matrix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ATLAS_model.cpp">
+    <ClCompile Include="ATLAS_Model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ATLAS_RenderContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ATLAS_Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ATLAS_Vector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ATLAS_Vertex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ATLAS_Win32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

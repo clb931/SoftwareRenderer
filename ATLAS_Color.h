@@ -1,5 +1,6 @@
 #ifndef ATLAS_COLOR_H
 
+
 namespace ATLAS
 {
 	enum BlendMode
@@ -66,6 +67,7 @@ namespace ATLAS
 
 	Color LerpColor(Color min, Color max, real32 step);
 }
+
 
 #define ATLAS_COLOR_H
 #endif

@@ -1,9 +1,12 @@
 #ifndef ATLAS_RENDERCONTEXT_H
+#include "ATLAS_Texture.h"
+#include "ATLAS_Matrix.h"
+#include "ATLAS_Vector.h"
 #include "ATLAS_Vertex.h"
+
 
 namespace ATLAS
 {
-	class Texture;
 	enum AtlasEnum
 	{
 		AWS_DOUBLE_BUFFER = 0,
@@ -19,6 +22,7 @@ namespace ATLAS
 		DRAW_LINES = 1,
 		DRAW_TRIANGLES = 2,
 	};
+
 	enum AtlasFlag
 	{
 		CULL_FACES = 1,
@@ -91,6 +95,7 @@ namespace ATLAS
 		int32			m_PointSize;
 	};
 }
+
 
 #define ATLAS_RENDERCONTEXT_H
 #endif
