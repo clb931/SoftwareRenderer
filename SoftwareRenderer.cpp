@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "ATLAS_Model.cpp"
-#include "ATLAS_RenderContext.cpp"
-#include "ATLAS_Texture.cpp"
-#include "ATLAS_Win32.cpp"
+#include "ATLAS_Model.h"
+#include "ATLAS_RenderContext.h"
+#include "ATLAS_Texture.h"
+#include "ATLAS_Win32.h"
 
 
 INTERN ATLAS::Window window;
