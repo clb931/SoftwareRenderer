@@ -27,7 +27,7 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg) {
 		case WM_SIZE: {
-#ifndef RESIZE_BUFFERS
+#ifdef RESIZE_BUFFERS
 			window.Resize(LOWORD(lParam), HIWORD(lParam), 0, true);
 			if (pRC) {
 				pRC->Resize(LOWORD(lParam), HIWORD(lParam));
@@ -167,7 +167,7 @@ void DrawString(ATLAS::RenderContext *render_context, const char *str, Font font
 		real32 yPos = (real32)(ch / 16) * one_over_16;
 
 		// bottom - left
-		vertices[j].pos.x = x + ((real32)l * width);
+		vertices[j].pos.x = x + (l * width);
 		vertices[j].pos.y = y - height;
 		vertices[j].uv.u = xPos;
 		vertices[j].uv.v = 1.0f - yPos - one_over_16;
@@ -175,7 +175,7 @@ void DrawString(ATLAS::RenderContext *render_context, const char *str, Font font
 		j++;
 
 		// bottom - right
-		vertices[j].pos.x = x + ((real32)(l+k) * width);
+		vertices[j].pos.x = x + ((l+k) * width);
 		vertices[j].pos.y = y - height;
 		vertices[j].uv.u = xPos + one_over_16;
 		vertices[j].uv.v = 1.0f - yPos - one_over_16;
@@ -183,7 +183,7 @@ void DrawString(ATLAS::RenderContext *render_context, const char *str, Font font
 		j++;
 
 		// top - left
-		vertices[j].pos.x = x + ((real32)l * width);
+		vertices[j].pos.x = x + (l * width);
 		vertices[j].pos.y = y;
 		vertices[j].uv.u = xPos;
 		vertices[j].uv.v = 1.0f - yPos - 0.001f;
@@ -191,7 +191,7 @@ void DrawString(ATLAS::RenderContext *render_context, const char *str, Font font
 		j++;
 
 		// top - right
-		vertices[j].pos.x = x + ((real32)(l+k) * width);
+		vertices[j].pos.x = x + ((l+k) * width);
 		vertices[j].pos.y = y;
 		vertices[j].uv.u = xPos + one_over_16;
 		vertices[j].uv.v = 1.0f - yPos - 0.001f;
