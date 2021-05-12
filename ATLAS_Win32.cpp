@@ -248,12 +248,13 @@ namespace ATLAS
 		m_Style = style;
 	}
 
-	void Window::Resize(uint32 width, uint32 height, uint32 bpp)
+	void Window::Resize(uint32 width, uint32 height, uint32 bpp, bool buffer)
 	{
 		m_Width = width;
 		m_Height = height;
 		if(bpp) m_BufferBPP = bpp;
 
-		ResizeBuffer(m_Width, m_Height, m_BufferBPP);
+		if (buffer)
+			ResizeBuffer(m_Width, m_Height, m_BufferBPP);
 	}
 }

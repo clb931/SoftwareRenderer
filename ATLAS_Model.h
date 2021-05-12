@@ -21,7 +21,7 @@ namespace ATLAS
 	public:
 		Model();
 		Model(const char *file_path, Texture *texture = nullptr);
-		Model(Vertex *vertices, uint32 num_vertices,
+		Model(const char *name, Vertex *vertices, uint32 num_vertices,
 			Polygon *polygons, uint32 num_polygons,
 			Texture *texture = nullptr);
 		~Model();

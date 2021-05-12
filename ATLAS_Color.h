@@ -16,14 +16,17 @@ namespace ATLAS
 		BLEND_COLOR_BURN,
 		BLEND_DIFFERENCE,
 		BLEND_DARKEN,
-		BLEND_LIGHTEN
+		BLEND_LIGHTEN,
+		BLEND_TRANSPARENT
 	};
 
 	typedef uint32 Color32;
 	class Color
 	{
 	public:
-		Color(real32 r = 1.0f, real32 g = 1.0f, real32 b = 1.0f, real32 a = 0.0f);
+		Color() : R(0.0f), G(0.0f), B(0.0f), A(1.0f) {}
+		Color(uint32 c);
+		Color(real32 r, real32 g, real32 b, real32 a = 1.0f);
 
 		Color32 toColor32() const;
 		Color operator+=(const Color &top);
@@ -46,6 +49,7 @@ namespace ATLAS
 		static const Color MAGENTA;
 		static const Color YELLOW;
 		static const Color WHITE;
+		static const Color CLEAR;
 	};
 
 	Color operator+(Color bottom, const Color &top);
@@ -64,6 +68,7 @@ namespace ATLAS
 	Color BlendDifference(Color bottom, Color top);
 	Color BlendDarken(Color bottom, Color top);
 	Color BlendLighten(Color bottom, Color top);
+	Color BlendTransparent(Color bottom, Color top);
 
 	Color LerpColor(Color min, Color max, real32 step);
 }

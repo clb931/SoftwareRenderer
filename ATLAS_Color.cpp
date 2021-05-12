@@ -4,6 +4,14 @@
 
 namespace ATLAS
 {
+	Color::Color(uint32 c)
+	{
+		R = ((c >> 16) & 0xFF) / 255.0f;
+		G = ((c >>  8) & 0xFF) / 255.0f;
+		B = ((c >>  0) & 0xFF) / 255.0f;
+		A = ((c >> 24) & 0xFF) / 255.0f;
+	}
+
 	Color::Color(real32 r, real32 g, real32 b, real32 a)
 	{
 		R = min(1.0f, r);
@@ -17,8 +25,8 @@ namespace ATLAS
 		return Color32(
 			((uint32)(A * 255.0f) << 24) |
 			((uint32)(R * 255.0f) << 16) |
-			((uint32)(G * 255.0f) << 8) |
-			((uint32)(B * 255.0f) << 0));
+			((uint32)(G * 255.0f) <<  8) |
+			((uint32)(B * 255.0f) <<  0));
 	}
 
 	Color Color::operator+=(const Color &top)
@@ -111,6 +119,9 @@ namespace ATLAS
 		case BLEND_LIGHTEN:
 			result = "BLEND_LIGHTEN";
 			break;
+		case BLEND_TRANSPARENT:
+			result = "BLEND_TRANSPARENT";
+			break;
 		}
 
 		return result;
@@ -157,6 +168,9 @@ namespace ATLAS
 			break;
 		case BLEND_LIGHTEN:
 			result = BlendLighten(bottom, top);
+			break;
+		case BLEND_TRANSPARENT:
+			result = BlendTransparent(bottom, top);
 			break;
 		}
 
@@ -231,6 +245,14 @@ namespace ATLAS
 	Color BlendLighten(Color bottom, Color top)
 	{
 		return Color(max(bottom.R, top.R), max(bottom.G, top.G), max(bottom.B, top.B), max(bottom.A, top.A));
+	}
+
+	Color BlendTransparent(Color bottom, Color top) {
+		if (top.toColor32() > Color(0.2f, 0.2f, 0.2f, 1.0f).toColor32()) {
+			return bottom;
+		} else {
+			return Color::CLEAR;
+		}
 	}
 		
 	struct hsv
@@ -350,12 +372,13 @@ namespace ATLAS
 		return lerp(min_color, max_color, step);
 	}
 
-	const Color Color::RED = Color(1.0f, 0.0f, 0.0f, 0.1f);
-	const Color Color::GREEN = Color(0.0f, 1.0f, 0.0f, 0.1f);
-	const Color Color::BLUE = Color(0.0f, 0.0f, 1.0f, 0.1f);
-	const Color Color::BLACK = Color(0.0f, 0.0f, 0.0f, 0.1f);
-	const Color Color::CYAN = Color(0.0f, 1.0f, 1.0f, 0.1f);
-	const Color Color::MAGENTA = Color(1.0f, 0.0f, 1.0f, 0.1f);
-	const Color Color::YELLOW = Color(1.0f, 1.0f, 0.0f, 0.1f);
-	const Color Color::WHITE = Color(1.0f, 1.0f, 1.0f, 0.1f);
+	const Color Color::RED = Color(1.0f, 0.0f, 0.0f, 1.0f);
+	const Color Color::GREEN = Color(0.0f, 1.0f, 0.0f, 1.0f);
+	const Color Color::BLUE = Color(0.0f, 0.0f, 1.0f, 1.0f);
+	const Color Color::BLACK = Color(0.0f, 0.0f, 0.0f, 1.0f);
+	const Color Color::CYAN = Color(0.0f, 1.0f, 1.0f, 1.0f);
+	const Color Color::MAGENTA = Color(1.0f, 0.0f, 1.0f, 1.0f);
+	const Color Color::YELLOW = Color(1.0f, 1.0f, 0.0f, 1.0f);
+	const Color Color::WHITE = Color(1.0f, 1.0f, 1.0f, 1.0f);
+	const Color Color::CLEAR = Color(0.0f, 0.0f, 0.0f, 0.5f);
 }

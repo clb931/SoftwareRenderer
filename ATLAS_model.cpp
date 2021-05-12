@@ -163,11 +163,11 @@ namespace ATLAS
 		}
 	}
 
-	Model::Model(Vertex *vertices, uint32 num_vertices,
+	Model::Model(const char *name, Vertex *vertices, uint32 num_vertices,
 		ATLAS::Polygon *polygons, uint32 num_polygons,
 		Texture *texture)
 	{
-		m_Name[0] = '\0';
+		strcpy(m_Name, name);
 		m_TransformationMatrix = IdentityMatrix;
 		m_NumVertices = num_vertices;
 		m_Vertices = new Vertex[num_vertices];

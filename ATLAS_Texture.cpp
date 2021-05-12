@@ -44,7 +44,7 @@ namespace ATLAS
 				data[j + 0] = colors.r;
 				data[j + 1] = colors.g;
 				data[j + 2] = colors.b;
-				data[j + 3] = 0;
+				data[j + 3] = 255;
 
 				j += 4;
 			}

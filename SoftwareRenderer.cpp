@@ -4,10 +4,19 @@
 #include "ATLAS_Texture.h"
 #include "ATLAS_Win32.h"
 
+struct Font {
+	ATLAS::Texture* tex;
+	uint32 width, height;
+
+	Font() : tex(nullptr) {}
+	Font(ATLAS::Texture* tex, uint32 width, uint32 height)
+		: tex(tex), width(width), height(height)
+	{}
+};
 
 INTERN ATLAS::Window window;
 INTERN ATLAS::RenderContext *pRC;
-INTERN ATLAS::Texture *font[2];
+INTERN Font font[2];
 INTERN ATLAS::Model *model[3];
 INTERN int32 font_index = 0;
 INTERN int32 model_index = 0;
@@ -18,9 +27,15 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg) {
 		case WM_SIZE: {
-			if (pRC)
+#ifndef RESIZE_BUFFERS
+			window.Resize(LOWORD(lParam), HIWORD(lParam), 0, true);
+			if (pRC) {
 				pRC->Resize(LOWORD(lParam), HIWORD(lParam));
-			window.Resize(LOWORD(lParam), HIWORD(lParam));
+				pRC->SetFrameBuffer(window.GetBuffer());
+			}
+#else
+			window.Resize(LOWORD(lParam), HIWORD(lParam), 0, false);
+#endif
 			window.Flip();
 		} break;
 
@@ -108,7 +123,7 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return result;
 }
 
-void DrawString(ATLAS::RenderContext *render_context, const char *str, ATLAS::Texture *font,
+void DrawString(ATLAS::RenderContext *render_context, const char *str, Font font,
 	real32 size = 24.0f, ATLAS::Color color = ATLAS::Color::WHITE, real32 x = -1.0f, real32 y = 1.0f)
 {
 	uint32 length = strlen(str);
@@ -116,9 +131,9 @@ void DrawString(ATLAS::RenderContext *render_context, const char *str, ATLAS::Te
 		return;
 
 	const real32 one_over_16 = 1.0f / 16.0f;
-	size /= 50.0f;
-	ATLAS::Vertex vertices[4];
-	uint32 k = 0;
+	const real32 width = ((real32)font.width / (real32)render_context->GetWidth()) * size;
+	const real32 height = ((real32)font.height / (real32)render_context->GetHeight()) * size;
+	uint32 k = 1;
 
 	bool32 old_cull_face = render_context->GetFlag(ATLAS::CULL_FACES);
 	bool32 old_depth_test = render_context->GetFlag(ATLAS::DEPTH_TEST);
@@ -128,60 +143,60 @@ void DrawString(ATLAS::RenderContext *render_context, const char *str, ATLAS::Te
 	render_context->SetFlag(ATLAS::CULL_FACES, false);
 	render_context->SetFlag(ATLAS::DEPTH_TEST, false);
 	render_context->SetDrawStyle(ATLAS::DRAW_TRIANGLES);
-	render_context->SetTexture(font);
-	render_context->SetBlendMode(ATLAS::BLEND_DARKEN);
+	render_context->SetTexture(font.tex);
+	render_context->SetBlendMode(ATLAS::BLEND_TRANSPARENT);
 
 	ATLAS::Matrix4f P = ATLAS::OrthograohicMatrix(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 1000.0f);
 
+	uint32 l = 0;
 	for (uint32 i = 0; i < length; ++i) {
 		if (str[i] == '\n') {
-			y -= size;
-			k = 0;
+			y -= height;
+			k = 1;
+			l = 0;
 			continue;
 		}
 
+		if (str[i] == '\t')
+			k = 4;
+
+		ATLAS::Vertex vertices[4];
 		uint32 j = 0;
 		int32 ch = str[i];
 		real32 xPos = (real32)(ch % 16) * one_over_16;
 		real32 yPos = (real32)(ch / 16) * one_over_16;
 
 		// bottom - left
-		vertices[j].pos.x = x + (size * 0.65f) * k;
-		vertices[j].pos.y = y - size;
+		vertices[j].pos.x = x + ((real32)l * width);
+		vertices[j].pos.y = y - height;
 		vertices[j].uv.u = xPos;
 		vertices[j].uv.v = 1.0f - yPos - one_over_16;
 		vertices[j].color = color;
 		j++;
 
-		if (str[i] == '\t')
-			k += 4;
 		// bottom - right
-		vertices[j].pos.x = x + (size * 0.65f) * (k + 1);
-		vertices[j].pos.y = y - size;
+		vertices[j].pos.x = x + ((real32)(l+k) * width);
+		vertices[j].pos.y = y - height;
 		vertices[j].uv.u = xPos + one_over_16;
 		vertices[j].uv.v = 1.0f - yPos - one_over_16;
 		vertices[j].color = color;
 		j++;
 
-		if (str[i] == '\t')
-			k -= 4;
 		// top - left
-		vertices[j].pos.x = x + (size * 0.65f) * k;
+		vertices[j].pos.x = x + ((real32)l * width);
 		vertices[j].pos.y = y;
 		vertices[j].uv.u = xPos;
 		vertices[j].uv.v = 1.0f - yPos - 0.001f;
 		vertices[j].color = color;
 		j++;
 
-		if (str[i] == '\t')
-			k += 4;
 		// top - right
-		vertices[j].pos.x = x + (size * 0.65f) * (k + 1);
+		vertices[j].pos.x = x + ((real32)(l+k) * width);
 		vertices[j].pos.y = y;
 		vertices[j].uv.u = xPos + one_over_16;
 		vertices[j].uv.v = 1.0f - yPos - 0.001f;
 		vertices[j].color = color;
-		k++;
+		l++;
 
 		vertices[0].pos *= P;
 		vertices[1].pos *= P;
@@ -263,10 +278,10 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 	pRC->SetFlag(ATLAS::CULL_FACES, true);
 	pRC->SetFlag(ATLAS::DEPTH_TEST, true);
 
-	ATLAS::Texture font0("Consolas.bmp");
+	ATLAS::Texture font0("font0.bmp");
 	ATLAS::Texture font1("font1.bmp");
-	font[0] = &font0;
-	font[1] = &font1;
+	font[0] = Font(&font0, 10, 10);
+	font[1] = Font(&font1, 16, 16);
 
 	ATLAS::Vertex verts[]
 	{
@@ -296,8 +311,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 	};
 
 	ATLAS::Texture cubetexture("texture.bmp");
-	ATLAS::Model cube(verts, 8, polys, 12, &cubetexture);
-	cube.SetName("Cube");
+	ATLAS::Model cube("Cube", verts, 8, polys, 12, &cubetexture);
 	cube.m_TransformationMatrix = ATLAS::TranslationMatrix(0.0f, 0.0f, -3.0f);
 	ATLAS::Texture spaceshiptexture("spaceshiptexture.bmp");
 	ATLAS::Model spaceship("spaceship.3DS", &spaceshiptexture);
@@ -346,7 +360,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		else
 			draw_style = "ERROR";
 
-		ATLAS::Matrix4f P = ATLAS::PerspectiveMatrix((real32)window.GetBufferWidth() / (real32)window.GetBufferHeight(),
+		ATLAS::Matrix4f P = ATLAS::PerspectiveMatrix((real32)pRC->GetWidth() / (real32)pRC->GetHeight(),
 			70.0f, 0.1f, 1000.0f);
 		ATLAS::Matrix4f R = ATLAS::RotationMatrix(rotX, rotY, rotZ);
 		ATLAS::Matrix4f MVP = P * model[model_index]->m_TransformationMatrix * R;
@@ -384,7 +398,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 			model[model_index]->m_TransformationMatrix.a2[1][3],
 			model[model_index]->m_TransformationMatrix.a2[2][3],
 			rotX, rotY, rotZ);
-		DrawString(pRC, str, font[font_index], 3.0f, ATLAS::Color::RED);
+		DrawString(pRC, str, font[font_index], 4.0f, ATLAS::Color::RED);
 		window.Flip();
 	}
 

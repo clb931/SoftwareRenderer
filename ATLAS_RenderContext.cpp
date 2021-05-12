@@ -11,13 +11,9 @@ namespace ATLAS
 	RenderContext::RenderContext(void *buffer, uint32 width, uint32 height, uint32 bpp)
 	{
 		m_FrameBuffer = buffer;
-		m_Width = width;
-		m_Height = height;
 		//if (style & DEPTH_BUFFER)
-		if (m_Width > 0 && m_Height > 0)
-			m_DepthBuffer = new real32[m_Width * m_Height];
-		m_ScreenTransform = ScreenSpaceMatrix(m_Width, m_Height);
-
+		m_DepthBuffer = nullptr;
+		Resize(width, height);
 		SetDrawStyle(DRAW_TRIANGLES);
 		SetBlendMode(BLEND_NORMAL);
 		SetTexture(nullptr);
@@ -32,10 +28,28 @@ namespace ATLAS
 			delete[] m_DepthBuffer;
 	}
 
+	uint32 RenderContext::GetWidth() {
+		return m_Width;
+	}
+
+	uint32 RenderContext::GetHeight() {
+		return m_Height;
+	}
+
 	void RenderContext::Resize(uint32 width, uint32 height)
 	{
 		m_Width = width;
 		m_Height = height;
+		if (m_Width > 0 && m_Height > 0) {
+			if (m_DepthBuffer)
+				delete[] m_DepthBuffer;
+			m_ScreenTransform = ScreenSpaceMatrix(m_Width, m_Height);
+			m_DepthBuffer = new real32[m_Width * m_Height];
+		}
+	}
+
+	void RenderContext::SetFrameBuffer(void* buffer) {
+		m_FrameBuffer = buffer;
 	}
 
 	void RenderContext::DrawTriangle(Vertex v1, Vertex v2, Vertex v3)
@@ -156,6 +170,7 @@ namespace ATLAS
 		}
 	}
 
+	static BlendMode _text_mode = BLEND_DIFFERENCE;
 	void RenderContext::DrawPixel(uint32 x, uint32 y, const Color &color) {
 		if (x >= m_Width || y >= m_Height) {
 			__debugbreak();
@@ -163,7 +178,15 @@ namespace ATLAS
 		}
 
 		uint32 *pixel = (uint32 *)(m_FrameBuffer)+x + (y * m_Width);
-		*pixel = color.toColor32();
+		if (color.A < 1.0f - FLT_EPSILON) {
+			Color A = Color(*pixel) * (1.0f - color.A);
+			Color B = Color(color.toColor32()) * color.A;
+			A.A = 1.0f;
+			B.A = 1.0f;
+			*pixel = Blend(A, B, _text_mode).toColor32();
+		} else {
+			*pixel = color.toColor32();
+		}
 	}
 
 	void RenderContext::Clear(uint8 flags)

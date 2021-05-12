@@ -56,7 +56,7 @@ namespace ATLAS
 		void		SetMousePos(int32 x, int32 y, int32 f);
 
 		void		SetStyle(uint32 style);
-		void 		Resize(uint32 width, uint32 height, uint32 bpp = 0);
+		void 		Resize(uint32 width, uint32 height, uint32 bpp = 0, bool buffer = false);
 
 	private:
 		HINSTANCE		m_hInst;

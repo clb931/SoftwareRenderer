@@ -49,7 +49,10 @@ namespace ATLAS
 		RenderContext(void *buffer, uint32 width, uint32 height, uint32 bpp);
 		~RenderContext();
 
+		uint32 GetWidth();
+		uint32 GetHeight();
 		void Resize(uint32 width, uint32 height);
+		void SetFrameBuffer(void* buffer);
 
 		void DrawTriangle(Vertex v1, Vertex v2, Vertex v3);
 		void DrawLine(Vertex v1, Vertex v2);
