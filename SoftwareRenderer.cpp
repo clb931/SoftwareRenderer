@@ -3,6 +3,7 @@
 #include "ATLAS_RenderContext.h"
 #include "ATLAS_Texture.h"
 #include "ATLAS_Win32.h"
+#include "ATLAS_Entity.h"
 #include "ATLAS_Shader.h"
 
 struct Font {
@@ -20,7 +21,6 @@ INTERN ATL::Rasterizer rasterizer;
 INTERN int32 font_index = 0;
 INTERN Font font[2];
 INTERN int32 model_index = 0;
-INTERN ATLAS::Model *model[3];
 INTERN LARGE_INTEGER freq;
 
 void InitTimer()
@@ -132,14 +132,12 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 	};
 
 	ATLAS::Texture cubetexture("texture.bmp");
-	ATLAS::Model cube("Cube", verts, 8, polys, 12, &cubetexture);
-	cube.m_TransformationMatrix = ATLAS::IdentityMatrix4f;
+	ATLAS::Model cube("Cube", verts, 8, polys, 12);
 	ATLAS::Texture spaceshiptexture("spaceshiptexture.bmp");
-	ATLAS::Model spaceship("spaceship.3DS", &spaceshiptexture);
-	ATLAS::Model monkey("monkey.3DS", &spaceshiptexture);
-	model[0] = &cube;
-	model[1] = &spaceship;
-	model[2] = &monkey;
+	ATLAS::Model spaceship("spaceship.3DS");
+	ATLAS::Model monkey("monkey.3DS");
+
+	ATLAS::Entity entity(&cube, nullptr);
 
 	char str[512] = "";
 	InitTimer();
@@ -152,21 +150,12 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 
 		const double dt = 1.0 / 60.0;
 		PERSIST double frame_accumulator = 0.0;
-		PERSIST real32 rotX = 10.01f, rotY = 20.02f, rotZ = 30.03f;
+		PERSIST ATLAS::Vector3f rot;
 		frame_accumulator += delta_time / 1000.0;
 		while (frame_accumulator >= dt) {
-			rotX += dt * 10.0f;
-			if (fabs(rotX) > 360.0f)
-				rotX = 0.0f;
-
-			rotY += dt * 20.0f;
-			if (fabs(rotY) > 360.0f)
-				rotY = 0.0f;
-			
-			rotZ += dt * 1.0f;
-			if (fabs(rotZ) > 360.0f)
-				rotZ = 0.0f;
-
+			rot.x += dt * 10.0f;
+			rot.y += dt * 20.0f;
+			rot.z += dt * 30.0f;
 			frame_accumulator -= dt;
 		}
 
@@ -178,17 +167,14 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		uniforms.screenTransform = ATLAS::ScreenSpaceMatrix4f(uniforms.buffer.width, uniforms.buffer.height);
 
 		ATL::Rasterizer::Inputs rastIn{};
-		rastIn.polygonCount = model[model_index]->m_NumPolygons;
-		rastIn.polygons = model[model_index]->m_Polygons;
-		rastIn.vertexCount = model[model_index]->m_NumVertices;
-		rastIn.vertices = model[model_index]->m_Vertices;
+		rastIn.polygonCount = entity.getModel()->m_NumPolygons;
+		rastIn.polygons = entity.getModel()->m_Polygons;
+		rastIn.vertexCount = entity.getModel()->m_NumVertices;
+		rastIn.vertices = entity.getModel()->m_Vertices;
 
-		model[model_index]->m_TransformationMatrix
-			// = model[model_index]->m_TransformationMatrix
-			= ATLAS::TranslationMatrix4f(0.0f, 0.0f, -5.0f)
-			* ATLAS::RotationMatrix4f(rotX, rotY, rotZ)
-			* ATLAS::ScaleMatrix4f(1.0f, 1.0f, 1.0f);
-		ATLAS::Matrix4f M = model[model_index]->m_TransformationMatrix;
+		entity.setRotation(rot);
+		// entity.getPosition().z = -2.0f;
+		ATLAS::Matrix4f M = entity.getTransformationMatrix();
 		ATLAS::Matrix4f V = ATLAS::TranslationMatrix4f(0.0f, 0.0f, 3.0f);
 		ATLAS::Matrix4f P = ATLAS::PerspectiveMatrix4f(
 			(real32)uniforms.buffer.width / (real32)uniforms.buffer.height,

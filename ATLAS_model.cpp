@@ -42,15 +42,13 @@ namespace ATLAS
 	Model::Model()
 	{
 		m_Name[0] = '\0';
-		m_TransformationMatrix = IdentityMatrix4f;
 		m_NumVertices = 0;
 		m_Vertices = nullptr;
 		m_NumPolygons = 0;
 		m_Polygons = nullptr;
-		m_Texture = 0;
 	}
 
-	Model::Model(const char *file_path, Texture *texture) : Model()
+	Model::Model(const char *file_path) : Model()
 	{
 		char str[256] = "";
 		FILE *pFile;
@@ -147,8 +145,6 @@ namespace ATLAS
 				}
 			}
 
-			m_TransformationMatrix = IdentityMatrix4f;
-			m_Texture = texture;
 			CalculateNormals(this);
 
 			printf("Clossing File...\n\n");
@@ -164,17 +160,14 @@ namespace ATLAS
 	}
 
 	Model::Model(const char *name, Vertex *vertices, uint32 num_vertices,
-		ATLAS::Polygon *polygons, uint32 num_polygons,
-		Texture *texture)
+		ATLAS::Polygon *polygons, uint32 num_polygons)
 	{
 		strcpy(m_Name, name);
-		m_TransformationMatrix = IdentityMatrix4f;
 		m_NumVertices = num_vertices;
 		m_Vertices = new Vertex[num_vertices];
 		m_NumPolygons = num_polygons;
 		m_Polygons = new ATLAS::Polygon[num_polygons];
-		m_Texture = texture;
-
+		
 		for (uint32 i = 0; i < max(m_NumPolygons, m_NumVertices); ++i) {
 			if (i < m_NumVertices)
 				m_Vertices[i] = vertices[i];

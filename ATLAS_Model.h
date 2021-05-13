@@ -20,21 +20,18 @@ namespace ATLAS
 	{
 	public:
 		Model();
-		Model(const char *file_path, Texture *texture = nullptr);
+		Model(const char *file_path);
 		Model(const char *name, Vertex *vertices, uint32 num_vertices,
-			Polygon *polygons, uint32 num_polygons,
-			Texture *texture = nullptr);
+			Polygon *polygons, uint32 num_polygons);
 		~Model();
 
 		void SetName(char *name);
 		char *GetName();
 
-		Matrix4f	m_TransformationMatrix;
 		uint32		m_NumVertices;
 		Vertex		*m_Vertices;
 		uint32		m_NumPolygons;
 		Polygon		*m_Polygons;
-		Texture		*m_Texture;
 
 	private:
 		char m_Name[32];
