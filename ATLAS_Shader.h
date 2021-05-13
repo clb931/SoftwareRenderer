@@ -75,9 +75,7 @@ namespace ATL {
         };
 
         struct Uniforms {
-            ATLAS::Matrix4f M = ATLAS::IdentityMatrix4f;
-            ATLAS::Matrix4f V = ATLAS::IdentityMatrix4f;
-            ATLAS::Matrix4f P = ATLAS::IdentityMatrix4f;
+            ATLAS::Matrix4f MVP = ATLAS::IdentityMatrix4f;
         };
 
         Uniforms& getUniforms() {
@@ -91,9 +89,7 @@ namespace ATL {
         Outputs run(Inputs in) {
             Outputs out{};
 
-            out.pos = ATLAS::Vector4f(in.pos, 1.0f);
-            ATLAS::Matrix4f MVP = uniforms.P * uniforms.V * uniforms.M;
-            out.pos *= MVP;
+            out.pos = uniforms.MVP * ATLAS::Vector4f(in.pos, 1.0f);
             out.color = in.color;
 
             return out;
@@ -232,6 +228,8 @@ namespace ATL {
         Uniforms uniforms;
 
         void DrawPixel(uint32 x, uint32 y, uint32 color) {
+            if (x > uniforms.buffer.width || y > uniforms.buffer.height)
+                return;
             uint32* pixel = (uint32*)uniforms.buffer.data + (y * uniforms.buffer.width) + x;
             *pixel = color;
         }
@@ -245,7 +243,6 @@ namespace ATL {
 
             real32 x_prestep = x_min - left->x;
             real32 x_diff = (real32)(x_max - x_min);
-            // if (!x_diff)
             if (x_diff > -FLT_EPSILON && x_diff < FLT_EPSILON)
                 return;
 
@@ -283,7 +280,6 @@ namespace ATL {
             left = shortE->x < longE->x ? shortE : longE;
             right = shortE->x > longE->x ? shortE : longE;
 
-            // if (!left->y_diff || !right->y_diff)
             if ((left->y_diff > -FLT_EPSILON && left->y_diff < FLT_EPSILON)
                     || (right->y_diff > -FLT_EPSILON && right->y_diff < FLT_EPSILON))
                 return;
@@ -301,11 +297,12 @@ namespace ATL {
         }
 
         void DrawTriangle(Vertex v1, Vertex v2, Vertex v3) {
-            // screen transform & perspective divide
+            // screen transform
             v1.pos *= uniforms.screenTransform;
             v2.pos *= uniforms.screenTransform;
             v3.pos *= uniforms.screenTransform;
 
+            // perspective divide
             v1.pos.x /= v1.pos.w;
             v1.pos.y /= v1.pos.w;
             v1.pos.z /= v1.pos.w;
@@ -327,7 +324,7 @@ namespace ATL {
             if (v3.pos.y < v2.pos.y)
                 std::swap(v3, v2);
 
-            // scan
+            // scan (splitting the triganle into two smaller ones for easier lerping)
             Edge bot2top(v1, v3);
             Edge bot2mid(v1, v2);
             Edge mid2top(v2, v3);
@@ -344,7 +341,7 @@ namespace ATL {
             real32 ydiff = (v2.pos.y - v1.pos.y);
 
             if (xdiff == 0.0f && ydiff == 0.0f) {
-                DrawPixel((uint32)v1.pos.x, (uint32)v1.pos.y, ATLAS::Color::BLACK.toColor32());
+                DrawPixel((uint32)v1.pos.x, (uint32)v1.pos.y, v1.color.toColor32());
                 return;
             }
 
@@ -366,10 +363,10 @@ namespace ATL {
                     ATLAS::Color color = v1.color + ((v2.color - v1.color) * ((x - v1.pos.x) / xdiff));
                     // real32 u = v1.uv.u + ((v2.uv.u - v1.uv.u) * ((x - v1.pos.x) / xdiff));
                     // real32 v = v1.uv.v + ((v2.uv.v - v1.uv.v) * ((x - v1.pos.x) / xdiff));
-                    DrawPixel((uint32)x, (uint32)y, ATLAS::Color::BLACK.toColor32());
+    				// Color texel = GetTexel(u, v);
+                    DrawPixel((uint32)x, (uint32)y, color.toColor32());
                 }
-            }
-            else {
+            } else {
                 real32 ymin, ymax;
 
                 if (v1.pos.y < v2.pos.y) {
@@ -388,7 +385,7 @@ namespace ATL {
                     // real32 u = v1.uv.u + ((v2.uv.u - v1.uv.u) * ((y - v1.pos.y) / ydiff));
                     // real32 v = v1.uv.v + ((v2.uv.v - v1.uv.v) * ((y - v1.pos.y) / ydiff));
                     // Color texel = GetTexel(u, v);
-                    DrawPixel((uint32)x, (uint32)y, ATLAS::Color::BLACK.toColor32());
+                    DrawPixel((uint32)x, (uint32)y, color.toColor32());
                 }
             }
         }
@@ -400,7 +397,7 @@ namespace ATL {
             for (int32 y = -4; y < 4; ++y) {
                 for (int32 x = -4; x < 4; ++x) {
                     // Color texel = GetTexel(v.uv.u, v.uv.v);
-                    DrawPixel((uint32)v.pos.x + x, (uint32)v.pos.y + y, ATLAS::Color::BLACK.toColor32());
+                    DrawPixel((uint32)v.pos.x + x, (uint32)v.pos.y + y, v.color.toColor32());
                 }
             }
         }

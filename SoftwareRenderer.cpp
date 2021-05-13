@@ -74,66 +74,6 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam == VK_ESCAPE) {
 				PostQuitMessage(0);
 			}
-			// if (wParam == VK_F1) {
-			// 	if (model_index == 0) {
-			// 		model_index = 2;
-			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -4.0f);
-			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
-			// 		model[model_index]->m_TransformationMatrix = T * R;
-			// 	}
-			// 	else if (model_index == 1) {
-			// 		model_index--;
-			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -3.0f);
-			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(0.0f, 0.0f, 0.0f);
-			// 		model[model_index]->m_TransformationMatrix = T * R;
-			// 	}
-			// 	else if (model_index == 2) {
-			// 		model_index--;
-			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -300.0f);
-			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
-			// 		model[model_index]->m_TransformationMatrix = T * R;
-			// 	}
-			// }
-			// if (wParam == VK_F2) {
-			// 	if (model_index == 0) {
-			// 		model_index++;
-			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -300.0f);
-			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
-			// 		model[model_index]->m_TransformationMatrix = T * R;
-			// 	}
-			// 	else if (model_index == 1) {
-			// 		model_index++;
-			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -4.0f);
-			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
-			// 		model[model_index]->m_TransformationMatrix = T * R;
-			// 	}
-			// 	else if (model_index == 2) {
-			// 		model_index = 0;
-			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -3.0f);
-			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(0.0f, 0.0f, 0.0f);
-			// 		model[model_index]->m_TransformationMatrix = T * R;
-			// 	}
-			// }
-			// if (wParam == VK_F3) {
-			// 	ATLAS::AtlasEnum draw_style = (ATLAS::AtlasEnum)(pRC->GetDrawStyle() + 1);
-			// 	if (draw_style > ATLAS::DRAW_TRIANGLES)
-			// 		draw_style = ATLAS::DRAW_POINTS;
-
-			// 	pRC->SetDrawStyle(draw_style);
-			// }
-			// if (wParam == VK_F4) {
-			// 	ATLAS::BlendMode blend_mode = (ATLAS::BlendMode)(pRC->GetBlendMode() + 1);
-			// 	if (blend_mode > ATLAS::BLEND_LIGHTEN)
-			// 		blend_mode = ATLAS::BLEND_NORMAL;
-
-			// 	pRC->SetBlendMode(blend_mode);
-			// }
-			// if (wParam == VK_F5) {
-			// 	pRC->SetFlag(ATLAS::DEPTH_TEST, !pRC->GetFlag(ATLAS::DEPTH_TEST));
-			// }
-			// if (wParam == VK_F6) {
-			// 	pRC->SetFlag(ATLAS::CULL_FACES, !pRC->GetFlag(ATLAS::CULL_FACES));
-			// }
 			if (wParam == VK_F7) {
 				if (font_index == 1)
 					font_index = 0;
@@ -212,7 +152,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 
 		const double dt = 1.0 / 60.0;
 		PERSIST double frame_accumulator = 0.0;
-		PERSIST real32 rotX = 0.0f, rotY = 0.0f, rotZ = 0.0f;
+		PERSIST real32 rotX = 10.01f, rotY = 20.02f, rotZ = 30.03f;
 		frame_accumulator += delta_time / 1000.0;
 		while (frame_accumulator >= dt) {
 			rotX += dt * 10.0f;
@@ -240,27 +180,20 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		ATL::Rasterizer::Inputs rastIn{};
 		rastIn.polygonCount = model[model_index]->m_NumPolygons;
 		rastIn.polygons = model[model_index]->m_Polygons;
-		// rastIn.polygons = new ATLAS::Polygon[rastIn.polygonCount];
-		// for (int i = 0; i < rastIn.polygonCount; ++i) {
-		// 	rastIn.polygons[i] = model[model_index]->m_Polygons[i];
-		// }
 		rastIn.vertexCount = model[model_index]->m_NumVertices;
 		rastIn.vertices = model[model_index]->m_Vertices;
-		// rastIn.vertices = new ATLAS::Vertex[rastIn.vertexCount];
-		// for (int i = 0; i < rastIn.vertexCount; ++i) {
-		// 	rastIn.vertices[i] = model[model_index]->m_Vertices[i];
-		// }
 
 		model[model_index]->m_TransformationMatrix
-			= model[model_index]->m_TransformationMatrix
-			* ATLAS::TranslationMatrix4f(0.0f, 0.0f, 0.0f)
+			// = model[model_index]->m_TransformationMatrix
+			= ATLAS::TranslationMatrix4f(0.0f, 0.0f, -5.0f)
 			* ATLAS::RotationMatrix4f(rotX, rotY, rotZ)
 			* ATLAS::ScaleMatrix4f(1.0f, 1.0f, 1.0f);
-		uniforms.vert.getUniforms().M = model[model_index]->m_TransformationMatrix;
-		uniforms.vert.getUniforms().V = ATLAS::TranslationMatrix4f(0.0f, 0.0f, 3.0f);
-		uniforms.vert.getUniforms().P = ATLAS::PerspectiveMatrix4f(
+		ATLAS::Matrix4f M = model[model_index]->m_TransformationMatrix;
+		ATLAS::Matrix4f V = ATLAS::TranslationMatrix4f(0.0f, 0.0f, 3.0f);
+		ATLAS::Matrix4f P = ATLAS::PerspectiveMatrix4f(
 			(real32)uniforms.buffer.width / (real32)uniforms.buffer.height,
 			70.0f, 0.1f, 1000.0f);
+		uniforms.vert.getUniforms().MVP = P * V * M;
 
 		rasterizer.setUniforms(uniforms);
 		rasterizer.clear();
