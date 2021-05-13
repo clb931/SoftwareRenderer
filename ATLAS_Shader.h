@@ -8,6 +8,10 @@
 #include <vector>
 
 
+static bool drawTris = true;
+static bool drawLines = true;
+static bool drawPoints = true;
+
 namespace ATL {
     struct Vertex {
         ATLAS::Vector4f pos;
@@ -44,6 +48,9 @@ namespace ATL {
 
             color_step = (top.color - bot.color) / y_diff;
             color = bot.color + color_step * y_prestep;
+
+            // uv_step = (top.uv - bot.uv) / y_diff;
+            // uv = bot.uv + uv_step * y_prestep;
         }
 
         void Step() {
@@ -59,6 +66,7 @@ namespace ATL {
     public:
         struct Inputs {
             ATLAS::Vector3f pos;
+            ATLAS::Color color;
         };
 
         struct Outputs {
@@ -67,7 +75,9 @@ namespace ATL {
         };
 
         struct Uniforms {
-
+            ATLAS::Matrix4f M = ATLAS::IdentityMatrix4f;
+            ATLAS::Matrix4f V = ATLAS::IdentityMatrix4f;
+            ATLAS::Matrix4f P = ATLAS::IdentityMatrix4f;
         };
 
         Uniforms& getUniforms() {
@@ -82,7 +92,9 @@ namespace ATL {
             Outputs out{};
 
             out.pos = ATLAS::Vector4f(in.pos, 1.0f);
-            out.color = ATLAS::Color::RED;
+            ATLAS::Matrix4f MVP = uniforms.P * uniforms.V * uniforms.M;
+            out.pos *= MVP;
+            out.color = in.color;
 
             return out;
         }
@@ -163,25 +175,42 @@ namespace ATL {
                 threads.emplace_back([this, &in, p]() {
 #endif
                     Vertex vertices[3];
+                    ATLAS::Vector3f pos[3];
+                    ATLAS::Color col[3];
 
-                    vertices[0].pos = in.vertices[in.polygons[p].v1].pos;
-                    vertices[0].color = in.vertices[in.polygons[p].v1].color;
+                    pos[0] = in.vertices[in.polygons[p].v1].pos;
+                    col[0] = in.vertices[in.polygons[p].v1].color;
 
-                    vertices[1].pos = in.vertices[in.polygons[p].v2].pos;
-                    vertices[1].color = in.vertices[in.polygons[p].v2].color;
+                    pos[1] = in.vertices[in.polygons[p].v2].pos;
+                    col[1] = in.vertices[in.polygons[p].v2].color;
 
-                    vertices[2].pos = in.vertices[in.polygons[p].v3].pos;
-                    vertices[2].color = in.vertices[in.polygons[p].v3].color;
+                    pos[2] = in.vertices[in.polygons[p].v3].pos;
+                    col[2] = in.vertices[in.polygons[p].v3].color;
 
                     for (int i = 0; i < 3; ++i) {
                         VertexShader::Inputs vertIn{};
-                        vertIn.pos = ATLAS::Vector3f(vertices[i].pos.x, vertices[i].pos.y, vertices[i].pos.z);
+                        vertIn.pos = pos[i];
+                        vertIn.color = col[i];
                         VertexShader::Outputs vertOut = uniforms.vert.run(vertIn);
                         vertices[i].pos = vertOut.pos;
                         vertices[i].color = vertOut.color;
                     }
 
-                    DrawTriangle(vertices);
+                    if (drawTris) {
+                        DrawTriangle(vertices[0], vertices[1], vertices[2]);
+                    }
+
+                    if (drawLines) {
+                        DrawLine(vertices[0], vertices[1]);
+                        DrawLine(vertices[1], vertices[2]);
+                        DrawLine(vertices[2], vertices[0]);
+                    }
+                    
+                    if (drawPoints) {
+                        DrawPoint(vertices[0]);
+                        DrawPoint(vertices[1]);
+                        DrawPoint(vertices[2]);
+                    }
 #ifdef THREADING
                 });
 #endif
@@ -193,8 +222,9 @@ namespace ATL {
         }
 
         void clear() {
+            uint32 color = ATLAS::Color(0.1f, 0.2f, 0.3f, 1.0f).toColor32();
             for (int i = 0; i < uniforms.buffer.width * uniforms.buffer.height; ++i) {
-                ((uint32*)uniforms.buffer.data)[i] = 0;
+                ((uint32*)uniforms.buffer.data)[i] = color;
             }
         }
 
@@ -214,8 +244,9 @@ namespace ATL {
                 return;
 
             real32 x_prestep = x_min - left->x;
-            real32	x_diff = (real32)(x_max - x_min);
+            real32 x_diff = (real32)(x_max - x_min);
             if (!x_diff)
+            // if (x_diff > -FLT_EPSILON && x_diff < FLT_EPSILON)
                 return;
 
             real32	one_over_x_diff = 1.0f / x_diff;
@@ -226,6 +257,10 @@ namespace ATL {
 
             ATLAS::Color color_step = (right->color - left->color) * one_over_x_diff;
             ATLAS::Color color = left->color + color_step * x_prestep;
+
+            // UV		uv_step = (pRight->uv - pLeft->uv) * one_over_x_diff;
+            // UV		uv = pLeft->uv + uv_step * x_prestep;
+            // real32	*pDepthBuffer = (real32 *)m_DepthBuffer + y * m_Width;
 
             for (uint32 x = x_min; x < x_max; ++x) {
                 real32	z = 1.0f / one_over_z;
@@ -238,58 +273,123 @@ namespace ATL {
                 depth += depth_step;
                 one_over_z += one_over_z_step;
                 color += color_step;
+                // uv += uv_step;
             }
         }
 
         void ScanTriangle(Edge *shortE, Edge *longE) {
-            Edge *left = shortE;
-            Edge* right = longE;
+            Edge *left, *right;
 
-            if (left->x > right->x)
-                std::swap(left, right);
+            left = shortE->x < longE->x ? shortE : longE;
+            right = shortE->x > longE->x ? shortE : longE;
 
-            if ((left->y_diff > -FLT_EPSILON && left->y_diff < FLT_EPSILON)
-                    || (right->y_diff > -FLT_EPSILON && right->y_diff < FLT_EPSILON))
+            if (!left->y_diff || !right->y_diff)
+            // if ((left->y_diff > -FLT_EPSILON && left->y_diff < FLT_EPSILON)
+            //         || (right->y_diff > -FLT_EPSILON && right->y_diff < FLT_EPSILON))
                 return;
             
-            if (shortE->y_min > uniforms.buffer.height || shortE->y_max > uniforms.buffer.height)
+            uint32 y_min = (uint32)ceil(shortE->y_min);
+            uint32 y_max = (uint32)ceil(shortE->y_max);
+            if (y_min > uniforms.buffer.height || y_max > uniforms.buffer.height)
                 return;
 
-            for (uint32 y = shortE->y_min; y < shortE->y_max; ++y) {
+            for (uint32 y = y_min; y < y_max; ++y) {
                 FillScanLine(left, right, y);
                 right->Step();
                 left->Step();
             }
         }
 
-        void DrawTriangle(Vertex vertices[3]) {
-            // screen transform
-            vertices[0].pos = uniforms.screenTransform * vertices[0].pos;
-            vertices[1].pos = uniforms.screenTransform * vertices[1].pos;
-            vertices[2].pos = uniforms.screenTransform * vertices[2].pos;
-            
-            // perspective divide
-            vertices[0].pos /= vertices[0].pos.w;
-            vertices[1].pos /= vertices[1].pos.w;
-            vertices[2].pos /= vertices[2].pos.w;
+        void DrawTriangle(Vertex v1, Vertex v2, Vertex v3) {
+            // screen transform & perspective divide
+            v1.pos = (uniforms.screenTransform * v1.pos) / v1.pos.w;
+            v2.pos = (uniforms.screenTransform * v2.pos) / v2.pos.w;
+            v3.pos = (uniforms.screenTransform * v3.pos) / v3.pos.w;
 
             // sort
-            if (vertices[2].pos.y <  vertices[1].pos.y) {
-                std::swap(vertices[2], vertices[1]);
-            }
-            if ( vertices[1].pos.y <  vertices[0].pos.y) {
-                std::swap(vertices[1], vertices[0]);
-            }
-            if ( vertices[2].pos.y <  vertices[1].pos.y) {
-                std::swap(vertices[2], vertices[1]);
-            }
+            if (v3.pos.y < v2.pos.y)
+                std::swap(v3, v2);
+            if (v2.pos.y < v1.pos.y)
+                std::swap(v2, v1);
+            if (v3.pos.y < v2.pos.y)
+                std::swap(v3, v2);
 
             // scan
-            Edge bot2top(vertices[0], vertices[2]);
-            Edge bot2mid(vertices[0], vertices[1]);
-            Edge mid2top(vertices[1], vertices[2]);
+            Edge bot2top(v1, v3);
+            Edge bot2mid(v1, v2);
+            Edge mid2top(v2, v3);
             ScanTriangle(&bot2top, &bot2mid);
             ScanTriangle(&bot2top, &mid2top);
+        }
+
+        void DrawLine(Vertex v1, Vertex v2)
+        {
+            v1.pos = (uniforms.screenTransform * v1.pos) / v1.pos.w;
+            v2.pos = (uniforms.screenTransform * v2.pos) / v2.pos.w;
+
+            real32 xdiff = (v2.pos.x - v1.pos.x);
+            real32 ydiff = (v2.pos.y - v1.pos.y);
+
+            if (xdiff == 0.0f && ydiff == 0.0f) {
+                DrawPixel((uint32)v1.pos.x, (uint32)v1.pos.y, ATLAS::Color::BLACK.toColor32());
+                return;
+            }
+
+            if (fabs(xdiff) > fabs(ydiff)) {
+                real32 xmin, xmax;
+
+                if (v1.pos.x < v2.pos.x) {
+                    xmin = v1.pos.x;
+                    xmax = v2.pos.x;
+                }
+                else {
+                    xmin = v2.pos.x;
+                    xmax = v1.pos.x;
+                }
+
+                real32 slope = ydiff / xdiff;
+                for (real32 x = xmin; x <= xmax; x += 1.0f) {
+                    real32 y = v1.pos.y + ((x - v1.pos.x) * slope);
+                    ATLAS::Color color = v1.color + ((v2.color - v1.color) * ((x - v1.pos.x) / xdiff));
+                    // real32 u = v1.uv.u + ((v2.uv.u - v1.uv.u) * ((x - v1.pos.x) / xdiff));
+                    // real32 v = v1.uv.v + ((v2.uv.v - v1.uv.v) * ((x - v1.pos.x) / xdiff));
+                    DrawPixel((uint32)x, (uint32)y, ATLAS::Color::BLACK.toColor32());
+                }
+            }
+            else {
+                real32 ymin, ymax;
+
+                if (v1.pos.y < v2.pos.y) {
+                    ymin = v1.pos.y;
+                    ymax = v2.pos.y;
+                }
+                else {
+                    ymin = v2.pos.y;
+                    ymax = v1.pos.y;
+                }
+
+                real32 slope = xdiff / ydiff;
+                for (real32 y = ymin; y <= ymax; y += 1.0f) {
+                    real32 x = v1.pos.x + ((y - v1.pos.y) * slope);
+                    ATLAS::Color color = v1.color + ((v2.color - v1.color) * ((y - v1.pos.y) / ydiff));
+                    // real32 u = v1.uv.u + ((v2.uv.u - v1.uv.u) * ((y - v1.pos.y) / ydiff));
+                    // real32 v = v1.uv.v + ((v2.uv.v - v1.uv.v) * ((y - v1.pos.y) / ydiff));
+                    // Color texel = GetTexel(u, v);
+                    DrawPixel((uint32)x, (uint32)y, ATLAS::Color::BLACK.toColor32());
+                }
+            }
+        }
+
+        void DrawPoint(Vertex v)
+        {
+            v.pos = (uniforms.screenTransform * v.pos) / v.pos.w;
+
+            for (int32 y = -4; y < 4; ++y) {
+                for (int32 x = -4; x < 4; ++x) {
+                    // Color texel = GetTexel(v.uv.u, v.uv.v);
+                    DrawPixel((uint32)v.pos.x + x, (uint32)v.pos.y + y, ATLAS::Color::BLACK.toColor32());
+                }
+            }
         }
     };
 }

@@ -4,7 +4,7 @@
 
 namespace ATLAS
 {
-	Vertex::Vertex(Vector4f position, UV uv, Color color)
+	Vertex::Vertex(Vector3f position, UV uv, Color color)
 	{
 		this->pos = position;
 		this->norm = Vector4f();
@@ -12,7 +12,7 @@ namespace ATLAS
 		this->color = color;
 	}
 
-	Vertex::Vertex(Vector4f position, Vector4f normal, UV uv, Color color)
+	Vertex::Vertex(Vector3f position, Vector4f normal, UV uv, Color color)
 	{
 		this->pos = position;
 		this->norm = normal;
@@ -22,15 +22,15 @@ namespace ATLAS
 
 	void Vertex::PerspectiveDivide()
 	{
-		pos.x /= pos.w;
-		pos.y /= pos.w;
-		pos.z /= pos.w;
+		// pos.x /= pos.w;
+		// pos.y /= pos.w;
+		// pos.z /= pos.w;
 
-		norm /= pos.w;
+		// norm /= pos.w;
 
-		uv /= pos.w;
+		// uv /= pos.w;
 
-		color = color / pos.w;
+		// color = color / pos.w;
 	}
 
 	Vertex Vertex::Lerp(const Vertex &vertex, const real32 lerp_amnt)
@@ -43,8 +43,9 @@ namespace ATLAS
 
 	bool32 Vertex::IsInView()
 	{
-		return (abs(pos.x) <= abs(pos.w) &&
-			abs(pos.y) <= abs(pos.w) &&
-			abs(pos.z) <= abs(pos.w));
+		// return (abs(pos.x) <= abs(pos.w) &&
+		// 	abs(pos.y) <= abs(pos.w) &&
+		// 	abs(pos.z) <= abs(pos.w));
+		return true;
 	}
 }

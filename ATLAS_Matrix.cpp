@@ -113,15 +113,13 @@ namespace ATLAS {
 	}
 	Matrix4f RotationMatrix4f(real32 x, real32 y, real32 z)
 	{
-		real32 cos_theta;
-		real32 sin_theta;
 		Matrix4f mat = IdentityMatrix4f;
 		
 		if (x)
 		{
 			x /= 57.5f;
-			cos_theta = cosf(x);
-			sin_theta = sinf(x);
+			real32 cos_theta = cosf(x);
+			real32 sin_theta = sinf(x);
 
 			Matrix4f matX = IdentityMatrix4f;
 			matX.a2[1][1] = cos_theta;
@@ -135,8 +133,8 @@ namespace ATLAS {
 		if (y)
 		{
 			y /= 57.5f;
-			cos_theta = cosf(y);
-			sin_theta = sinf(y);
+			real32 cos_theta = cosf(y);
+			real32 sin_theta = sinf(y);
 
 			Matrix4f matY = IdentityMatrix4f;
 			matY.a2[0][0] = cos_theta;
@@ -150,8 +148,8 @@ namespace ATLAS {
 		if (z)
 		{
 			z /= 57.5f;
-			cos_theta = cosf(z);
-			sin_theta = sinf(z);
+			real32 cos_theta = cosf(z);
+			real32 sin_theta = sinf(z);
 
 			Matrix4f matZ = IdentityMatrix4f;
 			matZ.a2[0][0] = cos_theta;

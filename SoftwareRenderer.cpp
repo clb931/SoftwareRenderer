@@ -74,46 +74,46 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam == VK_ESCAPE) {
 				PostQuitMessage(0);
 			}
-			if (wParam == VK_F1) {
-				if (model_index == 0) {
-					model_index = 2;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -4.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
-					model[model_index]->m_TransformationMatrix = T * R;
-				}
-				else if (model_index == 1) {
-					model_index--;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -3.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(0.0f, 0.0f, 0.0f);
-					model[model_index]->m_TransformationMatrix = T * R;
-				}
-				else if (model_index == 2) {
-					model_index--;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -300.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
-					model[model_index]->m_TransformationMatrix = T * R;
-				}
-			}
-			if (wParam == VK_F2) {
-				if (model_index == 0) {
-					model_index++;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -300.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
-					model[model_index]->m_TransformationMatrix = T * R;
-				}
-				else if (model_index == 1) {
-					model_index++;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -4.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
-					model[model_index]->m_TransformationMatrix = T * R;
-				}
-				else if (model_index == 2) {
-					model_index = 0;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -3.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(0.0f, 0.0f, 0.0f);
-					model[model_index]->m_TransformationMatrix = T * R;
-				}
-			}
+			// if (wParam == VK_F1) {
+			// 	if (model_index == 0) {
+			// 		model_index = 2;
+			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -4.0f);
+			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
+			// 		model[model_index]->m_TransformationMatrix = T * R;
+			// 	}
+			// 	else if (model_index == 1) {
+			// 		model_index--;
+			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -3.0f);
+			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(0.0f, 0.0f, 0.0f);
+			// 		model[model_index]->m_TransformationMatrix = T * R;
+			// 	}
+			// 	else if (model_index == 2) {
+			// 		model_index--;
+			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -300.0f);
+			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
+			// 		model[model_index]->m_TransformationMatrix = T * R;
+			// 	}
+			// }
+			// if (wParam == VK_F2) {
+			// 	if (model_index == 0) {
+			// 		model_index++;
+			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -300.0f);
+			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
+			// 		model[model_index]->m_TransformationMatrix = T * R;
+			// 	}
+			// 	else if (model_index == 1) {
+			// 		model_index++;
+			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -4.0f);
+			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
+			// 		model[model_index]->m_TransformationMatrix = T * R;
+			// 	}
+			// 	else if (model_index == 2) {
+			// 		model_index = 0;
+			// 		ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -3.0f);
+			// 		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(0.0f, 0.0f, 0.0f);
+			// 		model[model_index]->m_TransformationMatrix = T * R;
+			// 	}
+			// }
 			// if (wParam == VK_F3) {
 			// 	ATLAS::AtlasEnum draw_style = (ATLAS::AtlasEnum)(pRC->GetDrawStyle() + 1);
 			// 	if (draw_style > ATLAS::DRAW_TRIANGLES)
@@ -166,14 +166,14 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 
 	ATLAS::Vertex verts[]
 	{
-		ATLAS::Vertex(ATLAS::Vector4f(-0.5f, -0.5f, 0.5f),	ATLAS::UV(0.0f, 0.0f), ATLAS::Color::YELLOW),	// left  - bottom	- back
-		ATLAS::Vertex(ATLAS::Vector4f(0.5f, -0.5f, 0.5f),	ATLAS::UV(1.0f, 0.0f), ATLAS::Color::WHITE),	// right - bottom	- back
-		ATLAS::Vertex(ATLAS::Vector4f(0.5f, -0.5f, -0.5f),	ATLAS::UV(1.0f, 0.0f), ATLAS::Color::CYAN),		// left  - bottom	- front
-		ATLAS::Vertex(ATLAS::Vector4f(-0.5f, -0.5f, -0.5f),	ATLAS::UV(0.0f, 0.0f), ATLAS::Color::GREEN),	// right - bottom	- front
-		ATLAS::Vertex(ATLAS::Vector4f(-0.5f, 0.5f, 0.5f),	ATLAS::UV(0.0f, 1.0f), ATLAS::Color::RED),		// left  - top		- back
-		ATLAS::Vertex(ATLAS::Vector4f(0.5f, 0.5f, 0.5f),	ATLAS::UV(1.0f, 1.0f), ATLAS::Color::MAGENTA),	// right - top		- back
-		ATLAS::Vertex(ATLAS::Vector4f(0.5f, 0.5f, -0.5f),	ATLAS::UV(1.0f, 1.0f), ATLAS::Color::BLUE), 	// left  - top		- front
-		ATLAS::Vertex(ATLAS::Vector4f(-0.5f, 0.5f, -0.5f),	ATLAS::UV(0.0f, 1.0f), ATLAS::Color::BLACK)		// right - top		- front
+		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, -0.5f, 0.5f),	ATLAS::UV(0.0f, 0.0f), ATLAS::Color::YELLOW),	// left  - bottom	- back
+		ATLAS::Vertex(ATLAS::Vector3f(0.5f, -0.5f, 0.5f),	ATLAS::UV(1.0f, 0.0f), ATLAS::Color::WHITE),	// right - bottom	- back
+		ATLAS::Vertex(ATLAS::Vector3f(0.5f, -0.5f, -0.5f),	ATLAS::UV(1.0f, 0.0f), ATLAS::Color::CYAN),		// left  - bottom	- front
+		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, -0.5f, -0.5f),	ATLAS::UV(0.0f, 0.0f), ATLAS::Color::GREEN),	// right - bottom	- front
+		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, 0.5f, 0.5f),	ATLAS::UV(0.0f, 1.0f), ATLAS::Color::RED),		// left  - top		- back
+		ATLAS::Vertex(ATLAS::Vector3f(0.5f, 0.5f, 0.5f),	ATLAS::UV(1.0f, 1.0f), ATLAS::Color::MAGENTA),	// right - top		- back
+		ATLAS::Vertex(ATLAS::Vector3f(0.5f, 0.5f, -0.5f),	ATLAS::UV(1.0f, 1.0f), ATLAS::Color::BLUE), 	// left  - top		- front
+		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, 0.5f, -0.5f),	ATLAS::UV(0.0f, 1.0f), ATLAS::Color::BLACK)		// right - top		- front
 	};
 	ATLAS::Polygon polys[]
 	{
@@ -193,7 +193,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 
 	ATLAS::Texture cubetexture("texture.bmp");
 	ATLAS::Model cube("Cube", verts, 8, polys, 12, &cubetexture);
-	cube.m_TransformationMatrix = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -3.0f);
+	cube.m_TransformationMatrix = ATLAS::IdentityMatrix4f;
 	ATLAS::Texture spaceshiptexture("spaceshiptexture.bmp");
 	ATLAS::Model spaceship("spaceship.3DS", &spaceshiptexture);
 	ATLAS::Model monkey("monkey.3DS", &spaceshiptexture);
@@ -212,31 +212,23 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 
 		const double dt = 1.0 / 60.0;
 		PERSIST double frame_accumulator = 0.0;
-		PERSIST real32 rotX = 0.0f, rotY = 0.0f, rotZ = 0.0f;
+		PERSIST real32 rotX = .01f, rotY = .02f, rotZ = .03f;
 		frame_accumulator += delta_time / 1000.0;
 		while (frame_accumulator >= dt) {
-			rotX += dt * 10.0f;
-			if (fabs(rotX) > 360.0f)
-				rotX = 0.0f;
+			// rotX += dt * 10.0f;
+			// if (fabs(rotX) > 360.0f)
+			// 	rotX = 0.0f;
 
-			rotY += dt * 20.0f;
-			if (fabs(rotY) > 360.0f)
-				rotY = 0.0f;
+			// rotY += dt * 20.0f;
+			// if (fabs(rotY) > 360.0f)
+			// 	rotY = 0.0f;
 			
-			rotZ += dt * 30.0f;
-			if (fabs(rotZ) > 360.0f)
-				rotZ = 0.0f;
+			// rotZ += dt * 1.0f;
+			// if (fabs(rotZ) > 360.0f)
+			// 	rotZ = 0.0f;
 
 			frame_accumulator -= dt;
 		}
-
-		// ATLAS::Matrix4f P = ATLAS::PerspectiveMatrix4f((real32)pRC->GetWidth() / (real32)pRC->GetHeight(),
-		// 	70.0f, 0.1f, 1000.0f);
-		// ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(rotX, rotY, rotZ);
-		// ATLAS::Matrix4f MVP = P * model[model_index]->m_TransformationMatrix * R;
-
-		ATL::VertexShader vert;
-		ATL::FragmentShader frag;
 
 		ATL::Rasterizer::Uniforms uniforms{};
 		uniforms.buffer.data = window.GetBuffer();
@@ -244,16 +236,33 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		uniforms.buffer.height = window.GetBufferHeight();
 		uniforms.buffer.bpp = window.GetBufferBPP();
 		uniforms.screenTransform = ATLAS::ScreenSpaceMatrix4f(uniforms.buffer.width, uniforms.buffer.height);
-		uniforms.vert = vert;
-		uniforms.frag = frag;
-		rasterizer.setUniforms(uniforms);
 
 		ATL::Rasterizer::Inputs rastIn{};
 		rastIn.polygonCount = model[model_index]->m_NumPolygons;
 		rastIn.polygons = model[model_index]->m_Polygons;
+		// rastIn.polygons = new ATLAS::Polygon[rastIn.polygonCount];
+		// for (int i = 0; i < rastIn.polygonCount; ++i) {
+		// 	rastIn.polygons[i] = model[model_index]->m_Polygons[i];
+		// }
 		rastIn.vertexCount = model[model_index]->m_NumVertices;
 		rastIn.vertices = model[model_index]->m_Vertices;
+		// rastIn.vertices = new ATLAS::Vertex[rastIn.vertexCount];
+		// for (int i = 0; i < rastIn.vertexCount; ++i) {
+		// 	rastIn.vertices[i] = model[model_index]->m_Vertices[i];
+		// }
 
+		model[model_index]->m_TransformationMatrix
+			= model[model_index]->m_TransformationMatrix
+			* ATLAS::TranslationMatrix4f(0.0f, 0.0f, 0.0f)
+			* ATLAS::RotationMatrix4f(rotX, rotY, rotZ)
+			* ATLAS::ScaleMatrix4f(1.0f, 1.0f, 1.0f);
+		uniforms.vert.getUniforms().M = model[model_index]->m_TransformationMatrix;
+		uniforms.vert.getUniforms().V = ATLAS::TranslationMatrix4f(0.0f, 0.0f, 3.0f);
+		uniforms.vert.getUniforms().P = ATLAS::PerspectiveMatrix4f(
+			(real32)uniforms.buffer.width / (real32)uniforms.buffer.height,
+			70.0f, 0.1f, 1000.0f);
+
+		rasterizer.setUniforms(uniforms);
 		rasterizer.clear();
 		rasterizer.run(rastIn);
 
