@@ -212,20 +212,20 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 
 		const double dt = 1.0 / 60.0;
 		PERSIST double frame_accumulator = 0.0;
-		PERSIST real32 rotX = .01f, rotY = .02f, rotZ = .03f;
+		PERSIST real32 rotX = 0.0f, rotY = 0.0f, rotZ = 0.0f;
 		frame_accumulator += delta_time / 1000.0;
 		while (frame_accumulator >= dt) {
-			// rotX += dt * 10.0f;
-			// if (fabs(rotX) > 360.0f)
-			// 	rotX = 0.0f;
+			rotX += dt * 10.0f;
+			if (fabs(rotX) > 360.0f)
+				rotX = 0.0f;
 
-			// rotY += dt * 20.0f;
-			// if (fabs(rotY) > 360.0f)
-			// 	rotY = 0.0f;
+			rotY += dt * 20.0f;
+			if (fabs(rotY) > 360.0f)
+				rotY = 0.0f;
 			
-			// rotZ += dt * 1.0f;
-			// if (fabs(rotZ) > 360.0f)
-			// 	rotZ = 0.0f;
+			rotZ += dt * 1.0f;
+			if (fabs(rotZ) > 360.0f)
+				rotZ = 0.0f;
 
 			frame_accumulator -= dt;
 		}

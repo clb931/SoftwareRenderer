@@ -245,8 +245,8 @@ namespace ATL {
 
             real32 x_prestep = x_min - left->x;
             real32 x_diff = (real32)(x_max - x_min);
-            if (!x_diff)
-            // if (x_diff > -FLT_EPSILON && x_diff < FLT_EPSILON)
+            // if (!x_diff)
+            if (x_diff > -FLT_EPSILON && x_diff < FLT_EPSILON)
                 return;
 
             real32	one_over_x_diff = 1.0f / x_diff;
@@ -277,15 +277,15 @@ namespace ATL {
             }
         }
 
-        void ScanTriangle(Edge *shortE, Edge *longE) {
+        void ScanTriangle(Edge *longE, Edge *shortE) {
             Edge *left, *right;
 
             left = shortE->x < longE->x ? shortE : longE;
             right = shortE->x > longE->x ? shortE : longE;
 
-            if (!left->y_diff || !right->y_diff)
-            // if ((left->y_diff > -FLT_EPSILON && left->y_diff < FLT_EPSILON)
-            //         || (right->y_diff > -FLT_EPSILON && right->y_diff < FLT_EPSILON))
+            // if (!left->y_diff || !right->y_diff)
+            if ((left->y_diff > -FLT_EPSILON && left->y_diff < FLT_EPSILON)
+                    || (right->y_diff > -FLT_EPSILON && right->y_diff < FLT_EPSILON))
                 return;
             
             uint32 y_min = (uint32)ceil(shortE->y_min);
@@ -302,9 +302,22 @@ namespace ATL {
 
         void DrawTriangle(Vertex v1, Vertex v2, Vertex v3) {
             // screen transform & perspective divide
-            v1.pos = (uniforms.screenTransform * v1.pos) / v1.pos.w;
-            v2.pos = (uniforms.screenTransform * v2.pos) / v2.pos.w;
-            v3.pos = (uniforms.screenTransform * v3.pos) / v3.pos.w;
+            v1.pos *= uniforms.screenTransform;
+            v2.pos *= uniforms.screenTransform;
+            v3.pos *= uniforms.screenTransform;
+
+            v1.pos.x /= v1.pos.w;
+            v1.pos.y /= v1.pos.w;
+            v1.pos.z /= v1.pos.w;
+
+            v2.pos.x /= v2.pos.w;
+            v2.pos.y /= v2.pos.w;
+            v2.pos.z /= v2.pos.w;
+
+            v3.pos.x /= v3.pos.w;
+            v3.pos.y /= v3.pos.w;
+            v3.pos.z /= v3.pos.w;
+
 
             // sort
             if (v3.pos.y < v2.pos.y)
