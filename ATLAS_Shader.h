@@ -192,6 +192,12 @@ namespace ATL {
             }
         }
 
+        void clear() {
+            for (int i = 0; i < uniforms.buffer.width * uniforms.buffer.height; ++i) {
+                ((uint32*)uniforms.buffer.data)[i] = 0;
+            }
+        }
+
     private:
         Uniforms uniforms;
 
