@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <vector>
 #include <intrin.h>
+#include <algorithm>
 
 using std::string;
 using std::wstring;

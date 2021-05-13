@@ -211,9 +211,9 @@ namespace ATLAS
 		v2.PerspectiveDivide();
 		v3.PerspectiveDivide();
 
-		if (m_Flags & CULL_FACES)
-			if (Normalize(v1.pos, v2.pos, v3.pos).z <= 0)
-				return;
+		// if (m_Flags & CULL_FACES)
+		// 	if (Normalize(v1.pos, v2.pos, v3.pos).z <= 0)
+		// 		return;
 
 		Vertex pVertices[3] = { v1, v2, v3 };
 		Vertex temp;

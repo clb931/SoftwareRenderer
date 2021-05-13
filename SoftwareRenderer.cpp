@@ -3,6 +3,7 @@
 #include "ATLAS_RenderContext.h"
 #include "ATLAS_Texture.h"
 #include "ATLAS_Win32.h"
+#include "ATLAS_Shader.h"
 
 struct Font {
 	ATLAS::Texture* tex;
@@ -16,6 +17,7 @@ struct Font {
 
 INTERN ATLAS::Window window;
 INTERN ATLAS::RenderContext *pRC;
+INTERN ATL::Rasterizer rasterizer;
 INTERN Font font[2];
 INTERN ATLAS::Model *model[3];
 INTERN int32 font_index = 0;
@@ -366,10 +368,32 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		ATLAS::Matrix4f MVP = P * model[model_index]->m_TransformationMatrix * R;
 
 		pRC->Clear(ATLAS::FRAME_BUFFER | ATLAS::DEPTH_BUFFER);
-		DrawModel(pRC, model[model_index], MVP);
+		// DrawModel(pRC, model[model_index], MVP);
+
+		ATL::VertexShader vert;
+		ATL::FragmentShader frag;
+
+		ATL::Rasterizer::Uniforms uniforms{};
+		uniforms.buffer.data = window.GetBuffer();
+		uniforms.buffer.width = window.GetBufferWidth();
+		uniforms.buffer.height = window.GetBufferHeight();
+		uniforms.buffer.bpp = window.GetBufferBPP();
+		uniforms.screenTransform = ATLAS::ScreenSpaceMatrix4f(uniforms.buffer.width, uniforms.buffer.height);
+		uniforms.vert = vert;
+		uniforms.frag = frag;
+		rasterizer.setUniforms(uniforms);
+
+		ATL::Rasterizer::Inputs rastIn{};
+		rastIn.polygonCount = model[model_index]->m_NumPolygons;
+		rastIn.polygons = model[model_index]->m_Polygons;
+		rastIn.vertexCount = model[model_index]->m_NumVertices;
+		rastIn.vertices = model[model_index]->m_Vertices;
+		rasterizer.run(rastIn);
+
 
 		PERSIST double frame_time = 0;
 		frame_time = lerp(delta_time, frame_time, 0.95);
+		printf("fps: %i dt: %.2f ms\n", (int)(1.0 / (frame_time / 1000.0)), frame_time);
 		sprintf_s(str, 512,
 			"fps: %i dt: %.2f ms\n"
 			"[F1][F2]Model:  %s\n"
@@ -398,7 +422,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 			model[model_index]->m_TransformationMatrix.a2[1][3],
 			model[model_index]->m_TransformationMatrix.a2[2][3],
 			rotX, rotY, rotZ);
-		DrawString(pRC, str, font[font_index], 4.0f, ATLAS::Color::RED);
+		// DrawString(pRC, str, font[font_index], 4.0f, ATLAS::Color::RED);
 		window.Flip();
 	}
 
