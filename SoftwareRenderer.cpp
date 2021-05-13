@@ -22,6 +22,7 @@ INTERN int32 font_index = 0;
 INTERN Font font[2];
 INTERN int32 model_index = 0;
 INTERN LARGE_INTEGER freq;
+INTERN ATLAS::Vector3f velocity;
 
 void InitTimer()
 {
@@ -74,11 +75,42 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam == VK_ESCAPE) {
 				PostQuitMessage(0);
 			}
+
+			if (wParam == VK_SHIFT) {
+				velocity.y = 1.0f;
+			} else if ((char)wParam == 'W') {
+				velocity.z = 1.0f;
+			} else if ((char)wParam == 'A') {
+				velocity.x = 1.0f;
+			} else if ((char)wParam == 'S') {
+				velocity.z = -1.0f;
+			} else if ((char)wParam == 'D') {
+				velocity.x = -1.0f;
+			} else if (wParam == VK_SPACE) {
+				velocity.y = -1.0f;
+			}
+
 			if (wParam == VK_F7) {
 				if (font_index == 1)
 					font_index = 0;
 				else
 					font_index = 1;
+			}
+		} break;
+
+		case WM_KEYUP: {
+			if (wParam == VK_SHIFT) {
+				velocity.y = 0.0f;
+			} else if ((char)wParam == 'W') {
+				velocity.z = 0.0f;
+			} else if ((char)wParam == 'A') {
+				velocity.x = 0.0f;
+			} else if ((char)wParam == 'S') {
+				velocity.z = 0.0f;
+			} else if ((char)wParam == 'D') {
+				velocity.x = 0.0f;
+			} else if (wParam == VK_SPACE) {
+				velocity.y = 0.0f;
 			}
 		} break;
 
@@ -137,7 +169,9 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 	ATLAS::Model spaceship("spaceship.3DS");
 	ATLAS::Model monkey("monkey.3DS");
 
+	ATLAS::Entity cam(nullptr, nullptr);
 	ATLAS::Entity entity(&cube, nullptr);
+	entity.getPosition().z = -3.0f;
 
 	char str[512] = "";
 	InitTimer();
@@ -165,17 +199,19 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		uniforms.buffer.height = window.GetBufferHeight();
 		uniforms.buffer.bpp = window.GetBufferBPP();
 		uniforms.screenTransform = ATLAS::ScreenSpaceMatrix4f(uniforms.buffer.width, uniforms.buffer.height);
-
+		uniforms.cull_faces = true;
+		
 		ATL::Rasterizer::Inputs rastIn{};
 		rastIn.polygonCount = entity.getModel()->m_NumPolygons;
 		rastIn.polygons = entity.getModel()->m_Polygons;
 		rastIn.vertexCount = entity.getModel()->m_NumVertices;
 		rastIn.vertices = entity.getModel()->m_Vertices;
 
+		cam.getPosition() += velocity * 0.01f;
 		entity.setRotation(rot);
-		// entity.getPosition().z = -2.0f;
+
 		ATLAS::Matrix4f M = entity.getTransformationMatrix();
-		ATLAS::Matrix4f V = ATLAS::TranslationMatrix4f(0.0f, 0.0f, 3.0f);
+		ATLAS::Matrix4f V = cam.getTransformationMatrix();
 		ATLAS::Matrix4f P = ATLAS::PerspectiveMatrix4f(
 			(real32)uniforms.buffer.width / (real32)uniforms.buffer.height,
 			70.0f, 0.1f, 1000.0f);

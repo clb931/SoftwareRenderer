@@ -9,8 +9,8 @@
 
 
 static bool drawTris = true;
-static bool drawLines = true;
-static bool drawPoints = true;
+static bool drawLines = false;
+static bool drawPoints = false;
 
 namespace ATL {
     struct Vertex {
@@ -152,6 +152,7 @@ namespace ATL {
             ATLAS::Matrix4f screenTransform;
             VertexShader vert;
             FragmentShader frag;
+            bool cull_faces;
         };
 
         Uniforms& getUniforms() {
@@ -183,6 +184,7 @@ namespace ATL {
                     pos[2] = in.vertices[in.polygons[p].v3].pos;
                     col[2] = in.vertices[in.polygons[p].v3].color;
 
+                    int vertsInView = 0;
                     for (int i = 0; i < 3; ++i) {
                         VertexShader::Inputs vertIn{};
                         vertIn.pos = pos[i];
@@ -190,22 +192,29 @@ namespace ATL {
                         VertexShader::Outputs vertOut = uniforms.vert.run(vertIn);
                         vertices[i].pos = vertOut.pos;
                         vertices[i].color = vertOut.color;
+                        if (abs(vertices[i].pos.x) <= abs(vertices[i].pos.w)
+                                && abs(vertices[i].pos.y) <= abs(vertices[i].pos.w)
+                                && abs(vertices[i].pos.z) <= abs(vertices[i].pos.w)) {
+                            vertsInView++;
+                        }
                     }
 
-                    if (drawTris) {
-                        DrawTriangle(vertices[0], vertices[1], vertices[2]);
-                    }
+                    if (vertsInView == 3) {
+                        if (drawTris) {
+                            DrawTriangle(vertices[0], vertices[1], vertices[2]);
+                        }
 
-                    if (drawLines) {
-                        DrawLine(vertices[0], vertices[1]);
-                        DrawLine(vertices[1], vertices[2]);
-                        DrawLine(vertices[2], vertices[0]);
-                    }
-                    
-                    if (drawPoints) {
-                        DrawPoint(vertices[0]);
-                        DrawPoint(vertices[1]);
-                        DrawPoint(vertices[2]);
+                        if (drawLines) {
+                            DrawLine(vertices[0], vertices[1]);
+                            DrawLine(vertices[1], vertices[2]);
+                            DrawLine(vertices[2], vertices[0]);
+                        }
+                        
+                        if (drawPoints) {
+                            DrawPoint(vertices[0]);
+                            DrawPoint(vertices[1]);
+                            DrawPoint(vertices[2]);
+                        }
                     }
 #ifdef THREADING
                 });
@@ -303,18 +312,13 @@ namespace ATL {
             v3.pos *= uniforms.screenTransform;
 
             // perspective divide
-            v1.pos.x /= v1.pos.w;
-            v1.pos.y /= v1.pos.w;
-            v1.pos.z /= v1.pos.w;
+            v1.pos /= v1.pos.w;
+            v2.pos /= v2.pos.w;
+            v3.pos /= v3.pos.w;
 
-            v2.pos.x /= v2.pos.w;
-            v2.pos.y /= v2.pos.w;
-            v2.pos.z /= v2.pos.w;
-
-            v3.pos.x /= v3.pos.w;
-            v3.pos.y /= v3.pos.w;
-            v3.pos.z /= v3.pos.w;
-
+            // back face culling
+			if (uniforms.cull_faces && Normalize(v1.pos, v2.pos, v3.pos).z <= 0)
+				return;
 
             // sort
             if (v3.pos.y < v2.pos.y)
