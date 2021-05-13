@@ -2,8 +2,7 @@
 #include "ATLAS_Matrix.h"
 
 
-namespace ATLAS
-{
+namespace ATLAS {
 	Matrix4f operator+(const Matrix4f &lhs, const Matrix4f &rhs)
 	{
 		Matrix4f result =
@@ -75,14 +74,14 @@ namespace ATLAS
 		return result;
 	}
 	
-	const Matrix4f IdentityMatrix =
+	const Matrix4f IdentityMatrix4f =
 	{
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1
 	};
-	Matrix4f InvertMatrix(const Matrix4f &m)
+	Matrix4f InvertMatrix4f(const Matrix4f &m)
 	{
 		Matrix4f mat = 
 		{
@@ -94,29 +93,29 @@ namespace ATLAS
 
 		return mat;
 	}
-	Matrix4f ScaleMatrix(real32 x, real32 y, real32 z)
+	Matrix4f ScaleMatrix4f(real32 x, real32 y, real32 z)
 	{
-		Matrix4f mat = IdentityMatrix;
+		Matrix4f mat = IdentityMatrix4f;
 		mat.a2[0][0] = x;
 		mat.a2[1][1] = y;
 		mat.a2[2][2] = z;
 
 		return mat;
 	}
-	Matrix4f TranslationMatrix(real32 x, real32 y, real32 z)
+	Matrix4f TranslationMatrix4f(real32 x, real32 y, real32 z)
 	{
-		Matrix4f mat = IdentityMatrix;
+		Matrix4f mat = IdentityMatrix4f;
 		mat.a2[0][3] = x;
 		mat.a2[1][3] = y;
 		mat.a2[2][3] = z;
 
 		return mat;
 	}
-	Matrix4f RotationMatrix(real32 x, real32 y, real32 z)
+	Matrix4f RotationMatrix4f(real32 x, real32 y, real32 z)
 	{
 		real32 cos_theta;
 		real32 sin_theta;
-		Matrix4f mat = IdentityMatrix;
+		Matrix4f mat = IdentityMatrix4f;
 		
 		if (x)
 		{
@@ -124,7 +123,7 @@ namespace ATLAS
 			cos_theta = cosf(x);
 			sin_theta = sinf(x);
 
-			Matrix4f matX = IdentityMatrix;
+			Matrix4f matX = IdentityMatrix4f;
 			matX.a2[1][1] = cos_theta;
 			matX.a2[1][2] = -sin_theta;
 			matX.a2[2][1] = sin_theta;
@@ -139,7 +138,7 @@ namespace ATLAS
 			cos_theta = cosf(y);
 			sin_theta = sinf(y);
 
-			Matrix4f matY = IdentityMatrix;
+			Matrix4f matY = IdentityMatrix4f;
 			matY.a2[0][0] = cos_theta;
 			matY.a2[0][2] = sin_theta;
 			matY.a2[2][0] = -sin_theta;
@@ -154,7 +153,7 @@ namespace ATLAS
 			cos_theta = cosf(z);
 			sin_theta = sinf(z);
 
-			Matrix4f matZ = IdentityMatrix;
+			Matrix4f matZ = IdentityMatrix4f;
 			matZ.a2[0][0] = cos_theta;
 			matZ.a2[0][1] = -sin_theta;
 			matZ.a2[1][0] = sin_theta;
@@ -165,7 +164,7 @@ namespace ATLAS
 
 		return mat;
 	}
-	Matrix4f PerspectiveMatrix(real32 aspect_ratio, real32 FOV, real32 z_near, real32 z_far)
+	Matrix4f PerspectiveMatrix4f(real32 aspect_ratio, real32 FOV, real32 z_near, real32 z_far)
 	{
 		real32 tan_half_fov = tanf(ToRadians(FOV) * 0.5f);
 		real32 z_range = z_near - z_far;
@@ -181,7 +180,7 @@ namespace ATLAS
 
 		return Projection;
 	}
-	Matrix4f OrthograohicMatrix(real32 right, real32 left, real32 bottom, real32 top, real32 z_near, real32 z_far)
+	Matrix4f OrthograohicMatrix4f(real32 right, real32 left, real32 bottom, real32 top, real32 z_near, real32 z_far)
 	{
 		
 		Matrix4f Projection =
@@ -194,7 +193,7 @@ namespace ATLAS
 
 		return Projection;
 	}
-	Matrix4f ScreenSpaceMatrix(uint32 width, uint32 height, real32 z_near, real32 z_far)
+	Matrix4f ScreenSpaceMatrix4f(uint32 width, uint32 height, real32 z_near, real32 z_far)
 	{
 		real32 half_width = (real32)width / 2.0f;
 		real32 half_height = (real32)height / 2.0f;
@@ -225,6 +224,98 @@ namespace ATLAS
 			mat.a2[1][0], mat.a2[1][1], mat.a2[1][2], mat.a2[1][3],
 			mat.a2[2][0], mat.a2[2][1], mat.a2[2][2], mat.a2[2][3],
 			mat.a2[3][0], mat.a2[3][1], mat.a2[3][2], mat.a2[3][3]);
+		return str;
+	}
+}
+
+namespace ATLAS {
+	Matrix3f operator+(const Matrix3f &lhs, const Matrix3f &rhs)
+	{
+		Matrix3f result =
+		{
+			lhs.a2[0][0] + rhs.a2[0][0], lhs.a2[0][1] + rhs.a2[0][1], lhs.a2[0][2] + rhs.a2[0][2],
+			lhs.a2[1][0] + rhs.a2[1][0], lhs.a2[1][1] + rhs.a2[1][1], lhs.a2[1][2] + rhs.a2[1][2],
+			lhs.a2[2][0] + rhs.a2[2][0], lhs.a2[2][1] + rhs.a2[2][1], lhs.a2[2][2] + rhs.a2[2][2],
+		};
+		return result;
+	}
+	Matrix3f operator-(const Matrix3f &lhs, const Matrix3f &rhs)
+	{
+		Matrix3f result =
+		{
+			lhs.a2[0][0] - rhs.a2[0][0], lhs.a2[0][1] - rhs.a2[0][1], lhs.a2[0][2] - rhs.a2[0][2],
+			lhs.a2[1][0] - rhs.a2[1][0], lhs.a2[1][1] - rhs.a2[1][1], lhs.a2[1][2] - rhs.a2[1][2],
+			lhs.a2[2][0] - rhs.a2[2][0], lhs.a2[2][1] - rhs.a2[2][1], lhs.a2[2][2] - rhs.a2[2][2],
+		};
+		return result;
+	}
+	Matrix3f operator*(const Matrix3f &lhs, const Matrix3f &rhs)
+	{
+		Matrix3f result =
+		{
+/*[0][0]*/	lhs.a2[0][0] * rhs.a2[0][0] + lhs.a2[0][1] * rhs.a2[1][0] + lhs.a2[0][2] * rhs.a2[2][0],
+/*[0][1]*/	lhs.a2[0][0] * rhs.a2[0][1] + lhs.a2[0][1] * rhs.a2[1][1] + lhs.a2[0][2] * rhs.a2[2][1],
+/*[0][2]*/	lhs.a2[0][0] * rhs.a2[0][2] + lhs.a2[0][1] * rhs.a2[1][2] + lhs.a2[0][2] * rhs.a2[2][2],
+
+/*[1][0]*/	lhs.a2[1][0] * rhs.a2[0][0] + lhs.a2[1][1] * rhs.a2[1][0] + lhs.a2[1][2] * rhs.a2[2][0],
+/*[1][1]*/	lhs.a2[1][0] * rhs.a2[0][1] + lhs.a2[1][1] * rhs.a2[1][1] + lhs.a2[1][2] * rhs.a2[2][1],
+/*[1][2]*/	lhs.a2[1][0] * rhs.a2[0][2] + lhs.a2[1][1] * rhs.a2[1][2] + lhs.a2[1][2] * rhs.a2[2][2],
+
+/*[2][0]*/	lhs.a2[2][0] * rhs.a2[0][0] + lhs.a2[2][1] * rhs.a2[1][0] + lhs.a2[2][2] * rhs.a2[2][0],
+/*[2][1]*/	lhs.a2[2][0] * rhs.a2[0][1] + lhs.a2[2][1] * rhs.a2[1][1] + lhs.a2[2][2] * rhs.a2[2][1],
+/*[2][2]*/	lhs.a2[2][0] * rhs.a2[0][2] + lhs.a2[2][1] * rhs.a2[1][2] + lhs.a2[2][2] * rhs.a2[2][2],
+		};
+		return result;
+	}
+	Matrix3f operator*(const Matrix3f &lhs, const real32 &rhs)
+	{
+		Matrix3f result =
+		{
+			lhs.a2[0][0] * rhs, lhs.a2[0][1] * rhs, lhs.a2[0][2] * rhs,
+			lhs.a2[1][0] * rhs, lhs.a2[1][1] * rhs, lhs.a2[1][2] * rhs,
+			lhs.a2[2][0] * rhs, lhs.a2[2][1] * rhs, lhs.a2[2][2] * rhs,
+		};
+		return result;
+	}
+	Matrix3f operator/(const Matrix3f &lhs, const real32 &rhs)
+	{
+		Matrix3f result =
+		{
+			lhs.a2[0][0] / rhs, lhs.a2[0][1] / rhs, lhs.a2[0][2] / rhs,
+			lhs.a2[1][0] / rhs, lhs.a2[1][1] / rhs, lhs.a2[1][2] / rhs,
+			lhs.a2[2][0] / rhs, lhs.a2[2][1] / rhs, lhs.a2[2][2] / rhs,
+		};
+		return result;
+	}
+	
+	const Matrix3f IdentityMatrix3f =
+	{
+		1, 0, 0,
+		0, 1, 0,
+		0, 0, 1,
+	};
+	Matrix3f InvertMatrix3f(const Matrix3f &m)
+	{
+		Matrix3f mat = 
+		{
+			m.a2[0][0], m.a2[1][0], m.a2[2][0],
+			m.a2[0][1], m.a2[1][1], m.a2[2][1],
+			m.a2[0][2], m.a2[1][2], m.a2[2][2],
+		};
+
+		return mat;
+	}
+
+	string ToString(Matrix3f mat)
+	{
+		char str[256] = "";
+		sprintf_s(str, 256, "\n"
+			"[%+7.1f][%+7.1f][%+7.1f]\n"
+			"[%+7.1f][%+7.1f][%+7.1f]\n"
+			"[%+7.1f][%+7.1f][%+7.1f]\n\n",
+			mat.a2[0][0], mat.a2[0][1], mat.a2[0][2],
+			mat.a2[1][0], mat.a2[1][1], mat.a2[1][2],
+			mat.a2[2][0], mat.a2[2][1], mat.a2[2][2]);
 		return str;
 	}
 }

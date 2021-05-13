@@ -4,7 +4,7 @@
 
 INTERN real32 zNear = 0.0f;
 INTERN real32 zFar = 1.0f;
-INTERN ATLAS::Matrix4f View = ATLAS::IdentityMatrix;
+INTERN ATLAS::Matrix4f View = ATLAS::IdentityMatrix4f;
 
 namespace ATLAS
 {
@@ -43,7 +43,7 @@ namespace ATLAS
 		if (m_Width > 0 && m_Height > 0) {
 			if (m_DepthBuffer)
 				delete[] m_DepthBuffer;
-			m_ScreenTransform = ScreenSpaceMatrix(m_Width, m_Height);
+			m_ScreenTransform = ScreenSpaceMatrix4f(m_Width, m_Height);
 			m_DepthBuffer = new real32[m_Width * m_Height];
 		}
 	}

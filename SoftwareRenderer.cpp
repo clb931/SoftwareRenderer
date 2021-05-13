@@ -46,40 +46,40 @@ LRESULT WINAPI WinProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			if (wParam == VK_F1) {
 				if (model_index == 0) {
 					model_index = 2;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix(0.0f, 0.0f, -4.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix(-90.0f, 0.0f, 0.0f);
+					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -4.0f);
+					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
 					model[model_index]->m_TransformationMatrix = T * R;
 				}
 				else if (model_index == 1) {
 					model_index--;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix(0.0f, 0.0f, -3.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix(0.0f, 0.0f, 0.0f);
+					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -3.0f);
+					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(0.0f, 0.0f, 0.0f);
 					model[model_index]->m_TransformationMatrix = T * R;
 				}
 				else if (model_index == 2) {
 					model_index--;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix(0.0f, 0.0f, -300.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix(-90.0f, 0.0f, 0.0f);
+					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -300.0f);
+					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
 					model[model_index]->m_TransformationMatrix = T * R;
 				}
 			}
 			if (wParam == VK_F2) {
 				if (model_index == 0) {
 					model_index++;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix(0.0f, 0.0f, -300.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix(-90.0f, 0.0f, 0.0f);
+					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -300.0f);
+					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
 					model[model_index]->m_TransformationMatrix = T * R;
 				}
 				else if (model_index == 1) {
 					model_index++;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix(0.0f, 0.0f, -4.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix(-90.0f, 0.0f, 0.0f);
+					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -4.0f);
+					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(-90.0f, 0.0f, 0.0f);
 					model[model_index]->m_TransformationMatrix = T * R;
 				}
 				else if (model_index == 2) {
 					model_index = 0;
-					ATLAS::Matrix4f T = ATLAS::TranslationMatrix(0.0f, 0.0f, -3.0f);
-					ATLAS::Matrix4f R = ATLAS::RotationMatrix(0.0f, 0.0f, 0.0f);
+					ATLAS::Matrix4f T = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -3.0f);
+					ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(0.0f, 0.0f, 0.0f);
 					model[model_index]->m_TransformationMatrix = T * R;
 				}
 			}
@@ -146,7 +146,7 @@ void DrawString(ATLAS::RenderContext *render_context, const char *str, Font font
 	render_context->SetTexture(font.tex);
 	render_context->SetBlendMode(ATLAS::BLEND_TRANSPARENT);
 
-	ATLAS::Matrix4f P = ATLAS::OrthograohicMatrix(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 1000.0f);
+	ATLAS::Matrix4f P = ATLAS::OrthograohicMatrix4f(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 1000.0f);
 
 	uint32 l = 0;
 	for (uint32 i = 0; i < length; ++i) {
@@ -312,7 +312,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 
 	ATLAS::Texture cubetexture("texture.bmp");
 	ATLAS::Model cube("Cube", verts, 8, polys, 12, &cubetexture);
-	cube.m_TransformationMatrix = ATLAS::TranslationMatrix(0.0f, 0.0f, -3.0f);
+	cube.m_TransformationMatrix = ATLAS::TranslationMatrix4f(0.0f, 0.0f, -3.0f);
 	ATLAS::Texture spaceshiptexture("spaceshiptexture.bmp");
 	ATLAS::Model spaceship("spaceship.3DS", &spaceshiptexture);
 	ATLAS::Model monkey("monkey.3DS", &spaceshiptexture);
@@ -360,9 +360,9 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		else
 			draw_style = "ERROR";
 
-		ATLAS::Matrix4f P = ATLAS::PerspectiveMatrix((real32)pRC->GetWidth() / (real32)pRC->GetHeight(),
+		ATLAS::Matrix4f P = ATLAS::PerspectiveMatrix4f((real32)pRC->GetWidth() / (real32)pRC->GetHeight(),
 			70.0f, 0.1f, 1000.0f);
-		ATLAS::Matrix4f R = ATLAS::RotationMatrix(rotX, rotY, rotZ);
+		ATLAS::Matrix4f R = ATLAS::RotationMatrix4f(rotX, rotY, rotZ);
 		ATLAS::Matrix4f MVP = P * model[model_index]->m_TransformationMatrix * R;
 
 		pRC->Clear(ATLAS::FRAME_BUFFER | ATLAS::DEPTH_BUFFER);

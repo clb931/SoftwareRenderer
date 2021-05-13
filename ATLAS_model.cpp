@@ -42,7 +42,7 @@ namespace ATLAS
 	Model::Model()
 	{
 		m_Name[0] = '\0';
-		m_TransformationMatrix = IdentityMatrix;
+		m_TransformationMatrix = IdentityMatrix4f;
 		m_NumVertices = 0;
 		m_Vertices = nullptr;
 		m_NumPolygons = 0;
@@ -147,7 +147,7 @@ namespace ATLAS
 				}
 			}
 
-			m_TransformationMatrix = IdentityMatrix;
+			m_TransformationMatrix = IdentityMatrix4f;
 			m_Texture = texture;
 			CalculateNormals(this);
 
@@ -168,7 +168,7 @@ namespace ATLAS
 		Texture *texture)
 	{
 		strcpy(m_Name, name);
-		m_TransformationMatrix = IdentityMatrix;
+		m_TransformationMatrix = IdentityMatrix4f;
 		m_NumVertices = num_vertices;
 		m_Vertices = new Vertex[num_vertices];
 		m_NumPolygons = num_polygons;
