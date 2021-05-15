@@ -3,9 +3,9 @@
 echo %VCVARSALL% %1
 call "%VCVARSALL%" %1
 
-if not exist .\Build mkdir .\Build
+if not exist .\out mkdir .\out
 
-pushd .\Build
+pushd .\out
 del %2.exe
-cl -nologo -Zi -EHsc -FC -DRESIZE_BUFFERS -Fe:%2.exe ../*.cpp user32.lib gdi32.lib
+cl -nologo -Zi -EHsc -FC -DRESIZE_BUFFERS -Fe:%2.exe ../src/*.cpp user32.lib gdi32.lib
 popd
