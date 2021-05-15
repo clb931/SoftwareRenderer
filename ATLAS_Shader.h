@@ -170,9 +170,6 @@ namespace ATL {
 
             std::vector<std::thread> threads;
             for (uint32 p = 0; p < in.polygonCount; ++p) {
-#ifdef THREADING
-                threads.emplace_back([this, &in, p]() {
-#endif
                     Vertex vertices[3];
                     int vertsInView = 0;
                     for (int i = 0; i < 3; ++i) {
@@ -206,9 +203,6 @@ namespace ATL {
                             DrawPoint(vertices[2]);
                         }
                     }
-#ifdef THREADING
-                });
-#endif
             }
 
             for (auto &t : threads) {
