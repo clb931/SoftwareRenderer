@@ -1,5 +1,6 @@
 #ifndef ATLAS_VECTOR_H
 #include "ATLAS_Matrix.h"
+#include "ATLAS_Color.h"
 
 
 namespace ATLAS {
@@ -26,17 +27,27 @@ namespace ATLAS {
 			struct { real32 u, v; };
 		};
 	};
-	typedef Vector2f UV;
 
 	Vector2f operator+(Vector2f lhs, const Vector2f &rhs);
 	Vector2f operator-(Vector2f lhs, const Vector2f &rhs);
 	Vector2f operator*(Vector2f lhs, const Vector2f &rhs);
 	Vector2f operator*(Vector2f lhs, const real32 &rhs);
 	Vector2f operator/(Vector2f lhs, const real32 &rhs);
+}
 
+namespace ATLAS {
 	class Vector3f {
 	public:
+		Vector3f(Color color) {
+			r = color.R;
+			g = color.G;
+			b = color.B;
+		}
 		Vector3f(real32 x = 0.0f, real32 y = 0.0f, real32 z = 0.0f);
+
+		explicit operator Color() {
+			return Color(x, y, z);
+		}
 
 		Vector3f &operator+=(const Vector3f &rhs);
 		Vector3f &operator-=(const Vector3f &rhs);
@@ -61,6 +72,7 @@ namespace ATLAS {
 		{
 			real32 a[3];
 			struct { real32 x, y, z; };
+			struct { real32 r, g, b; };
 		};
 	};
 	
@@ -80,7 +92,9 @@ namespace ATLAS {
 	Vector3f Normalize(Vector3f v1, Vector3f v2, Vector3f v3);
 
 	string ToString(Vector3f vec);
+}
 
+namespace ATLAS {
 	class Vector4f {
 	public:
 		Vector4f(Vector3f vec, real32 w = 1.0f);

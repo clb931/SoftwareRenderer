@@ -15,7 +15,7 @@ static bool drawPoints = false;
 namespace ATL {
     struct Vertex {
         ATLAS::Vector4f pos;
-        ATLAS::Color    color;
+        ATLAS::Vector3f color;
     };
 
     struct Edge {
@@ -24,8 +24,8 @@ namespace ATL {
 		real32	x_step, x;
 		real32	depth_step, depth;
 		real32	one_over_z_step, one_over_z;
-		ATLAS::Color	color_step, color;
-		ATLAS::UV		uv_step, uv;
+		ATLAS::Vector3f	color_step, color;
+		ATLAS::Vector2f		uv_step, uv;
 
         Edge(Vertex bot, Vertex top) {
             y_min = (int32)ceil(bot.pos.y);
@@ -66,12 +66,12 @@ namespace ATL {
     public:
         struct Inputs {
             ATLAS::Vector3f pos;
-            ATLAS::Color color;
+            ATLAS::Vector3f color;
         };
 
         struct Outputs {
             ATLAS::Vector4f pos;
-            ATLAS::Color color;
+            ATLAS::Vector3f color;
         };
 
         struct Uniforms {
@@ -102,11 +102,11 @@ namespace ATL {
     class FragmentShader {
     public:
         struct Inputs {
-            ATLAS::Color color;
+            ATLAS::Vector3f color;
         };
 
         struct Outputs {
-            ATLAS::Color color;
+            ATLAS::Vector3f color;
         };
 
         struct Uniforms {
@@ -173,7 +173,7 @@ namespace ATL {
 #endif
                     Vertex vertices[3];
                     ATLAS::Vector3f pos[3];
-                    ATLAS::Color col[3];
+                    ATLAS::Vector3f col[3];
 
                     pos[0] = in.vertices[in.polygons[p].v1].pos;
                     col[0] = in.vertices[in.polygons[p].v1].color;
@@ -261,8 +261,8 @@ namespace ATL {
             real32	one_over_z_step = (right->one_over_z - left->one_over_z) * one_over_x_diff;
             real32	one_over_z = left->one_over_z + one_over_z_step * x_prestep;
 
-            ATLAS::Color color_step = (right->color - left->color) * one_over_x_diff;
-            ATLAS::Color color = left->color + color_step * x_prestep;
+            ATLAS::Vector3f color_step = (right->color - left->color) * one_over_x_diff;
+            ATLAS::Vector3f color = left->color + color_step * x_prestep;
 
             // UV		uv_step = (pRight->uv - pLeft->uv) * one_over_x_diff;
             // UV		uv = pLeft->uv + uv_step * x_prestep;
@@ -274,7 +274,7 @@ namespace ATL {
                 FragmentShader::Inputs fragIn;
                 fragIn.color = color * z;
                 FragmentShader::Outputs fragOut = uniforms.frag.run(fragIn);
-                DrawPixel(x, y, fragOut.color.toColor32());
+                DrawPixel(x, y, ((ATLAS::Color)fragOut.color).toColor32());
 
                 depth += depth_step;
                 one_over_z += one_over_z_step;
@@ -345,7 +345,7 @@ namespace ATL {
             real32 ydiff = (v2.pos.y - v1.pos.y);
 
             if (xdiff == 0.0f && ydiff == 0.0f) {
-                DrawPixel((uint32)v1.pos.x, (uint32)v1.pos.y, v1.color.toColor32());
+                DrawPixel((uint32)v1.pos.x, (uint32)v1.pos.y, ((ATLAS::Color)v1.color).toColor32());
                 return;
             }
 
@@ -364,11 +364,11 @@ namespace ATL {
                 real32 slope = ydiff / xdiff;
                 for (real32 x = xmin; x <= xmax; x += 1.0f) {
                     real32 y = v1.pos.y + ((x - v1.pos.x) * slope);
-                    ATLAS::Color color = v1.color + ((v2.color - v1.color) * ((x - v1.pos.x) / xdiff));
+                    ATLAS::Vector3f color = v1.color + ((v2.color - v1.color) * ((x - v1.pos.x) / xdiff));
                     // real32 u = v1.uv.u + ((v2.uv.u - v1.uv.u) * ((x - v1.pos.x) / xdiff));
                     // real32 v = v1.uv.v + ((v2.uv.v - v1.uv.v) * ((x - v1.pos.x) / xdiff));
     				// Color texel = GetTexel(u, v);
-                    DrawPixel((uint32)x, (uint32)y, color.toColor32());
+                    DrawPixel((uint32)x, (uint32)y, ((ATLAS::Color)color).toColor32());
                 }
             } else {
                 real32 ymin, ymax;
@@ -385,11 +385,11 @@ namespace ATL {
                 real32 slope = xdiff / ydiff;
                 for (real32 y = ymin; y <= ymax; y += 1.0f) {
                     real32 x = v1.pos.x + ((y - v1.pos.y) * slope);
-                    ATLAS::Color color = v1.color + ((v2.color - v1.color) * ((y - v1.pos.y) / ydiff));
+                    ATLAS::Vector3f color = v1.color + ((v2.color - v1.color) * ((y - v1.pos.y) / ydiff));
                     // real32 u = v1.uv.u + ((v2.uv.u - v1.uv.u) * ((y - v1.pos.y) / ydiff));
                     // real32 v = v1.uv.v + ((v2.uv.v - v1.uv.v) * ((y - v1.pos.y) / ydiff));
                     // Color texel = GetTexel(u, v);
-                    DrawPixel((uint32)x, (uint32)y, color.toColor32());
+                    DrawPixel((uint32)x, (uint32)y, ((ATLAS::Color)color).toColor32());
                 }
             }
         }
@@ -401,7 +401,7 @@ namespace ATL {
             for (int32 y = -4; y < 4; ++y) {
                 for (int32 x = -4; x < 4; ++x) {
                     // Color texel = GetTexel(v.uv.u, v.uv.v);
-                    DrawPixel((uint32)v.pos.x + x, (uint32)v.pos.y + y, v.color.toColor32());
+                    DrawPixel((uint32)v.pos.x + x, (uint32)v.pos.y + y, ((ATLAS::Color)v.color).toColor32());
                 }
             }
         }

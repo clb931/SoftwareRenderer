@@ -8,17 +8,13 @@ namespace ATLAS
 	class Vertex
 	{
 	public:
-		Vertex(Vector3f position = Vector3f(), UV uv = UV(), Color color = Color::WHITE);
-		Vertex(Vector3f position, Vector4f normal, UV uv = UV(), Color color = Color::WHITE);
+		Vertex(Vector3f position = Vector3f(), Vector2f uv = Vector2f(), Vector3f color = Vector3f());
+		Vertex(Vector3f position, Vector3f normal, Vector2f uv = Vector2f(), Vector3f color = Vector3f());
 		
-		void PerspectiveDivide();
-		Vertex Lerp(const Vertex &vertex, const real32 lerp_amnt);
-		bool32 IsInView();
-
 		Vector3f pos;
-		Vector4f norm;
-		UV uv;
-		Color color;
+		Vector3f norm;
+		Vector2f uv;
+		Vector3f color;
 	};
 }
 

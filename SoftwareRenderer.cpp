@@ -138,14 +138,14 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 
 	ATLAS::Vertex verts[]
 	{
-		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, -0.5f, 0.5f),	ATLAS::UV(0.0f, 0.0f), ATLAS::Color::YELLOW),	// left  - bottom	- back
-		ATLAS::Vertex(ATLAS::Vector3f(0.5f, -0.5f, 0.5f),	ATLAS::UV(1.0f, 0.0f), ATLAS::Color::WHITE),	// right - bottom	- back
-		ATLAS::Vertex(ATLAS::Vector3f(0.5f, -0.5f, -0.5f),	ATLAS::UV(1.0f, 0.0f), ATLAS::Color::CYAN),		// left  - bottom	- front
-		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, -0.5f, -0.5f),	ATLAS::UV(0.0f, 0.0f), ATLAS::Color::GREEN),	// right - bottom	- front
-		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, 0.5f, 0.5f),	ATLAS::UV(0.0f, 1.0f), ATLAS::Color::RED),		// left  - top		- back
-		ATLAS::Vertex(ATLAS::Vector3f(0.5f, 0.5f, 0.5f),	ATLAS::UV(1.0f, 1.0f), ATLAS::Color::MAGENTA),	// right - top		- back
-		ATLAS::Vertex(ATLAS::Vector3f(0.5f, 0.5f, -0.5f),	ATLAS::UV(1.0f, 1.0f), ATLAS::Color::BLUE), 	// left  - top		- front
-		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, 0.5f, -0.5f),	ATLAS::UV(0.0f, 1.0f), ATLAS::Color::BLACK)		// right - top		- front
+		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, -0.5f, 0.5f),	ATLAS::Vector2f(0.0f, 0.0f), ATLAS::Vector3f(ATLAS::Color::YELLOW)),	// left  - bottom	- back
+		ATLAS::Vertex(ATLAS::Vector3f(0.5f, -0.5f, 0.5f),	ATLAS::Vector2f(1.0f, 0.0f), ATLAS::Vector3f(ATLAS::Color::WHITE)),	// right - bottom	- back
+		ATLAS::Vertex(ATLAS::Vector3f(0.5f, -0.5f, -0.5f),	ATLAS::Vector2f(1.0f, 0.0f), ATLAS::Vector3f(ATLAS::Color::CYAN)),		// left  - bottom	- front
+		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, -0.5f, -0.5f),	ATLAS::Vector2f(0.0f, 0.0f), ATLAS::Vector3f(ATLAS::Color::GREEN)),	// right - bottom	- front
+		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, 0.5f, 0.5f),	ATLAS::Vector2f(0.0f, 1.0f), ATLAS::Vector3f(ATLAS::Color::RED)),		// left  - top		- back
+		ATLAS::Vertex(ATLAS::Vector3f(0.5f, 0.5f, 0.5f),	ATLAS::Vector2f(1.0f, 1.0f), ATLAS::Vector3f(ATLAS::Color::MAGENTA)),	// right - top		- back
+		ATLAS::Vertex(ATLAS::Vector3f(0.5f, 0.5f, -0.5f),	ATLAS::Vector2f(1.0f, 1.0f), ATLAS::Vector3f(ATLAS::Color::BLUE)), 	// left  - top		- front
+		ATLAS::Vertex(ATLAS::Vector3f(-0.5f, 0.5f, -0.5f),	ATLAS::Vector2f(0.0f, 1.0f), ATLAS::Vector3f(ATLAS::Color::BLACK))		// right - top		- front
 	};
 	ATLAS::Polygon polys[]
 	{

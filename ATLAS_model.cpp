@@ -106,7 +106,7 @@ namespace ATLAS
 						fread(&m_Vertices[i].pos.y, sizeof(real32), 1, pFile);
 						fread(&m_Vertices[i].pos.z, sizeof(real32), 1, pFile);
 
-						m_Vertices[i].color = Color::WHITE;
+						// m_Vertices[i].color = Vector3f();
 					}
 				} break;
 
