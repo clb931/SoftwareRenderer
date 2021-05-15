@@ -3,6 +3,7 @@
 #include "ATLAS_Color.h"
 #include "ATLAS_Matrix.h"
 #include "ATLAS_Model.h"
+#include "ATLAS_VertexBufferObject.h"
 #include <cassert>
 #include <thread>
 #include <vector>
@@ -138,8 +139,9 @@ namespace ATL {
         struct Inputs {
             uint32 polygonCount;
             ATLAS::Polygon* polygons;
-            uint32 vertexCount;
-            ATLAS::Vertex* vertices;
+            // uint32 vertexCount;
+            // ATLAS::Vertex* vertices;
+            ATLAS::VertexBufferObject* vbo;
         };
 
         struct Buffer {
@@ -172,23 +174,11 @@ namespace ATL {
                 threads.emplace_back([this, &in, p]() {
 #endif
                     Vertex vertices[3];
-                    ATLAS::Vector3f pos[3];
-                    ATLAS::Vector3f col[3];
-
-                    pos[0] = in.vertices[in.polygons[p].v1].pos;
-                    col[0] = in.vertices[in.polygons[p].v1].color;
-
-                    pos[1] = in.vertices[in.polygons[p].v2].pos;
-                    col[1] = in.vertices[in.polygons[p].v2].color;
-
-                    pos[2] = in.vertices[in.polygons[p].v3].pos;
-                    col[2] = in.vertices[in.polygons[p].v3].color;
-
                     int vertsInView = 0;
                     for (int i = 0; i < 3; ++i) {
                         VertexShader::Inputs vertIn{};
-                        vertIn.pos = pos[i];
-                        vertIn.color = col[i];
+                        vertIn.pos = *(ATLAS::Vector3f*)ATLAS::VboGet(0, in.vbo, in.polygons[p].v[i]);
+                        vertIn.color = *(ATLAS::Vector3f*)ATLAS::VboGet(1, in.vbo, in.polygons[p].v[i]);
                         VertexShader::Outputs vertOut = uniforms.vert.run(vertIn);
                         vertices[i].pos = vertOut.pos;
                         vertices[i].color = vertOut.color;

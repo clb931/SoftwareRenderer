@@ -12,9 +12,9 @@ namespace ATLAS
 		Vertex(Vector3f position, Vector3f normal, Vector2f uv = Vector2f(), Vector3f color = Vector3f());
 		
 		Vector3f pos;
+		Vector3f color;
 		Vector3f norm;
 		Vector2f uv;
-		Vector3f color;
 	};
 }
 

@@ -11,9 +11,14 @@ namespace ATLAS
 	public:
 		Polygon(uint32 v1 = 0, uint32 v2 = 0, uint32 v3 = 0);
 
-		uint32 v1;
-		uint32 v2;
-		uint32 v3;
+		union {
+			uint32 v[3];
+			struct {
+				uint32 v1;
+				uint32 v2;
+				uint32 v3;
+			};
+		};
 	};
 
 	class Model

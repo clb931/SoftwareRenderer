@@ -169,6 +169,17 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 	ATLAS::Model spaceship("spaceship.3DS");
 	ATLAS::Model monkey("monkey.3DS");
 
+	uint32_t vec3size = sizeof(ATLAS::Vector3f);
+	ATLAS::VertexBufferObject vbo;
+	ATLAS::VboAlloc(&vbo, {
+		ATLAS::VertexBufferDescriptor{ cube.m_NumVertices, vec3size, 0, 0 },
+		ATLAS::VertexBufferDescriptor{ cube.m_NumVertices, vec3size, cube.m_NumVertices*vec3size, 0 },
+	});
+	ATLAS::VboFill(0, &vbo, cube.m_Vertices,
+		ATLAS::VertexBufferDescriptor{ cube.m_NumVertices, vec3size, 0, (uint32_t)sizeof(ATLAS::Vertex) - vec3size });
+	ATLAS::VboFill(1, &vbo, cube.m_Vertices,
+		ATLAS::VertexBufferDescriptor{ cube.m_NumVertices, vec3size, vec3size, (uint32_t)sizeof(ATLAS::Vertex) - vec3size });
+
 	ATLAS::Entity cam(nullptr, nullptr);
 	ATLAS::Entity entity(&cube, nullptr);
 	entity.getPosition().z = -3.0f;
@@ -204,8 +215,9 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrevInst, PWSTR pCmdLine, int nC
 		ATL::Rasterizer::Inputs rastIn{};
 		rastIn.polygonCount = entity.getModel()->m_NumPolygons;
 		rastIn.polygons = entity.getModel()->m_Polygons;
-		rastIn.vertexCount = entity.getModel()->m_NumVertices;
-		rastIn.vertices = entity.getModel()->m_Vertices;
+		rastIn.vbo = &vbo;
+		// rastIn.vertexCount = entity.getModel()->m_NumVertices;
+		// rastIn.vertices = entity.getModel()->m_Vertices;
 
 		cam.getPosition() += velocity * 0.01f;
 		entity.setRotation(rot);
